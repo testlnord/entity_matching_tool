@@ -16,8 +16,16 @@ const list = {
 }
 //-----------------------------------------------------
 
-export default function getListJobs() {
+let	getListJobs = function() {
 	//TODO: AJAX post to server
 	return list;
+};
+
+let sendJob = function() {
+	//TODO: AJAX post
 }
+
+
+
+export default {getListJobs, sendJob};
 
