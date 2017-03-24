@@ -4,7 +4,7 @@ import Nav from 'react-bootstrap/lib/Nav';
 import Navbar from 'react-bootstrap/lib/Navbar';
 import NavItem  from 'react-bootstrap/lib/NavItem';
 import ListJobs from './ListJobs'
-import ServerAPi from '../ServerAPI';
+import ServerAPI from '../ServerAPI';
 import './bootstrap.css';
 
 
@@ -12,7 +12,7 @@ class App extends Component {
   constructor() {
     super();
     this.state = {
-      jobs: ServerAPi.getListJobs(),
+      jobs: ServerAPI.getListJobs(),
     };
   };
   

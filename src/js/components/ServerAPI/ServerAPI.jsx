@@ -26,6 +26,5 @@ let sendJob = function() {
 }
 
 
-
 export default {getListJobs, sendJob};
 
