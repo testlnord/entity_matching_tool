@@ -21,7 +21,7 @@
     "url": "git+https://github.com/testlnord/entity_matching_tool.git"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "npm install && react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
