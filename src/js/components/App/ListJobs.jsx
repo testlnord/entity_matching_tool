@@ -11,13 +11,13 @@ class ListJobs extends Component {
 			activeKey: '1',
 			listJobs: Array.apply(null, {length: props.length}).map(Number.call, Number)
 				.map((number) => 
-					<Panel key={number.toString()} header={"Job" + " " + (number + 1)} eventKey={number}>Content of job</Panel>)
+					<Panel key={number.toString()} header={"Job " + (number + 1)} eventKey={number}>Content of job</Panel>)
 		};
 		this.handleSelect = this.handleSelect.bind(this);
 	}
 
 	handleSelect(activeKey) {
-		this.setState({ activeKey: activeKey });
+		this.state.activeKey === activeKey ? this.setState({ activeKey: null}) : this.setState({ activeKey: activeKey });
 	};
 
 	render() {

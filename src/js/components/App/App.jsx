@@ -3,7 +3,8 @@ import Grid  from 'react-bootstrap/lib/Grid';
 import Nav from 'react-bootstrap/lib/Nav';
 import Navbar from 'react-bootstrap/lib/Navbar';
 import NavItem  from 'react-bootstrap/lib/NavItem';
-import ListJobs from './ListJobs'
+import AddJob from './AddJob';
+import ListJobs from './ListJobs';
 import ServerAPI from '../ServerAPI';
 import './bootstrap.css';
 
@@ -30,10 +31,16 @@ class App extends Component {
            </Navbar.Collapse>
         </Navbar>
         <Grid>
-          <div className="list-jobs">
-            <ListJobs
-              length={this.state.jobs.length}
-            />
+          <div className="view-jobs">
+            <div className="add-job">
+              <h1>Jobs list</h1>
+              <AddJob/>
+            </div>
+            <div className="list-jobs">
+                <ListJobs
+                  length={this.state.jobs.length}
+                />
+            </div>
           </div>
         </Grid>
       </div>

@@ -10,20 +10,25 @@ const job2 = {
 	response: "Lalala"
 }
 
-const list = {
+let list = {
 	jobs: [job1, job2],
 	length: 2
 }
 //-----------------------------------------------------
+
 
 let	getListJobs = function() {
 	//TODO: AJAX post to server
 	return list;
 };
 
-let sendJob = function() {
+let sendJob = function(self, json) {
 	//TODO: AJAX post
-}
+	setTimeout(() => {
+    	self.setState({isLoading: false});
+	}, 2000);
+
+};
 
 
 export default {getListJobs, sendJob};
