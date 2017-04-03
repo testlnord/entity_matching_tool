@@ -18,9 +18,8 @@ class Job(db.Model):
     creation_date = db.Column(db.DateTime)
     __table_args__ = (UniqueConstraint('name', 'source1', 'source2', name='unique_job_with_sources'),)
 
-    def __init__(self, id, name, source1, source2, selected_fields, output_file_name,
+    def __init__(self, name, source1, source2, selected_fields, output_file_name,
                  creator, creation_date=None):
-        self.id = id
         self.name = name
         self.source1 = source1
         self.source2 = source2
@@ -35,6 +34,14 @@ class Job(db.Model):
     def __repr__(self):
         return '<Job: "{}">'.format(self.name)
 
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
 
 class Entity(db.Model):
     __tablename__ = 'entity'
@@ -47,8 +54,7 @@ class Entity(db.Model):
 
     job = db.relationship('Job', backref=db.backref('entities', lazy='dynamic'))
 
-    def __init__(self, id, job_id, is_first_source, name, other_fields):
-        self.id = id
+    def __init__(self, job_id, is_first_source, name, other_fields):
         self.job_id = job_id
         self.is_first_source = is_first_source
         self.name = name
@@ -56,6 +62,14 @@ class Entity(db.Model):
 
     def __repr__(self):
         return '<Entity: "{}">'.format(self.name)
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
 
 
 class MatchedEntities(db.Model):
@@ -73,18 +87,29 @@ class MatchedEntities(db.Model):
     def __repr__(self):
         return '<Matched Entities: {}, {}>'.format(self.entity1_id, self.entity2_id)
 
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
 
 class User(db.Model):
     __tablename__ = 'user'
-    user_name = db.Column(db.String(80), unique=True)
     id = db.Column(db.Integer, primary_key=True)
+    user_name = db.Column(db.String(80), unique=True)
 
-    def __init__(self, user_name, id):
+    def __init__(self, user_name):
         self.user_name = user_name
-        self.id = id
 
     def __repr__(self):
         return '<User: {}>'.format(self.user_name)
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
 
 
 if __name__ == "__main__":
