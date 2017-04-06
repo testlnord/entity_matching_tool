@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Panel from 'react-bootstrap/lib/Panel';
 import PanelGroup  from 'react-bootstrap/lib/PanelGroup';
+import ServerAPI from '../ServerAPI';
   	
     
 class ListJobs extends Component {
@@ -9,9 +10,10 @@ class ListJobs extends Component {
 		super();
 		this.state = {
 			activeKey: '1',
-			listJobs: Array.apply(null, {length: props.length}).map(Number.call, Number)
-				.map((number) => 
-					<Panel key={number.toString()} header={"Job " + (number + 1)} eventKey={number}>Content of job</Panel>)
+			listJobs: //Array.apply(null, {length: props.length}).map(Number.call, Number)
+					  ServerAPI.getNameJobs()
+				.map((name) => 
+					<Panel key={name.toString()} header={(name)} eventKey={name}>Content of job</Panel>)
 		};
 		this.handleSelect = this.handleSelect.bind(this);
 	}
@@ -21,6 +23,7 @@ class ListJobs extends Component {
 	};
 
 	render() {
+		console.log(this.state.listJobs);
 		return (
 			<PanelGroup activeKey={this.state.activeKey} 
 				onSelect={this.handleSelect} accordion>
