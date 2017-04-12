@@ -1,36 +1,47 @@
 import React, { Component } from 'react';
 import Panel from 'react-bootstrap/lib/Panel';
 import PanelGroup  from 'react-bootstrap/lib/PanelGroup';
+import Well from 'react-bootstrap/lib/Well';
 import ServerAPI from '../ServerAPI';
-  	
+    
     
 class ListJobs extends Component {
 
-	constructor(props) {
-		super();
-		this.state = {
-			activeKey: '1',
-			listJobs: //Array.apply(null, {length: props.length}).map(Number.call, Number)
-					  ServerAPI.getNameJobs()
-				.map((name) => 
-					<Panel key={name.toString()} header={(name)} eventKey={name}>Content of job</Panel>)
-		};
-		this.handleSelect = this.handleSelect.bind(this);
-	}
+    constructor(props) {
+        super();
+        this.state = {
+            activeKey: '1',
+            listJobs: ServerAPI.getJobsList()
+                .map((job) => 
+                    <Panel key={job.id} header={job.name} eventKey={job.name}>
+                        {"Source 1"}
+                        <Well>
+                            {job.source1}
+                        </Well>
+                    
+                        {"Source 2"}
+                        <Well>
+                            {job.source2}
+                        </Well>
+                    </Panel>
+                )
+        };
+        this.handleSelect = this.handleSelect.bind(this);
+    }
 
-	handleSelect(activeKey) {
-		this.state.activeKey === activeKey ? this.setState({ activeKey: null}) : this.setState({ activeKey: activeKey });
-	};
+    handleSelect(activeKey) {
+        this.state.activeKey === activeKey ? 
+            this.setState({ activeKey: null}) : this.setState({ activeKey: activeKey });
+    };
 
-	render() {
-		console.log(this.state.listJobs);
-		return (
-			<PanelGroup activeKey={this.state.activeKey} 
-				onSelect={this.handleSelect} accordion>
-				{this.state.listJobs}
-			</PanelGroup>
-		);
-	};
+    render() {
+        return (
+            <PanelGroup activeKey={this.state.activeKey} 
+                onSelect={this.handleSelect} accordion>
+                {this.state.listJobs}
+            </PanelGroup>
+        );
+    };
 };
 
 export default ListJobs;

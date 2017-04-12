@@ -16,7 +16,7 @@ class App extends Component {
     constructor() {
         super();
         this.state = {
-            jobs: ServerAPI.getListJobs(),
+            jobs: ServerAPI.getJobsList(),
         };
     };
   
