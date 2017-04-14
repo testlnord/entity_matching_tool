@@ -1,10 +1,10 @@
 import csv
 import os
 
-from flask import request
+from flask import request, render_template
 from flask_restful import Resource, abort, reqparse
 
-from entity_matching_tool.models import User, Job, Entity, MatchedEntities
+from models import User, Job, Entity, MatchedEntities
 
 parser = reqparse.RequestParser()
 parser.add_argument('job_id', type=int)
@@ -160,3 +160,4 @@ class Matching(Resource):
         match = MatchedEntities(entity1_id, entity2_id, user)
         match.save()
         return {'status': 'Matched'}
+

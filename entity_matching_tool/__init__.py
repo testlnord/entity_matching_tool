@@ -2,7 +2,7 @@ from flask import Flask
 from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
 
-from entity_matching_tool.config import app_config
+from config import app_config
 
 app = Flask("Entity matching tool")
 app.config.from_object(app_config)

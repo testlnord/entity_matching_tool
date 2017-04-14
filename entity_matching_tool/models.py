@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSON
 
-from entity_matching_tool.__init__ import db
+from entity_matching_tool import db
 
 
 class Job(db.Model):
