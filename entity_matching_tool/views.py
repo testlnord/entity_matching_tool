@@ -2,13 +2,17 @@ import csv
 import os
 
 from flask import request
-from flask_restful import Resource, abort
+from flask_restful import Resource, abort, reqparse
 
-from entity_matching_tool.models import User, Job, Entity
+from entity_matching_tool.models import User, Job, Entity, MatchedEntities
+
+parser = reqparse.RequestParser()
+parser.add_argument('job_id', type=int)
+parser.add_argument('file_path', type=str)
 
 
 def get_job_or_abort():
-    job_id = request.json.get('job_id')
+    job_id = parser.parse_args()['job_id']
     job = Job.query.filter(Job.id == job_id).first()
     if not job:
         abort(404, message="Job {} doesn't exist".format(job_id))
@@ -20,24 +24,24 @@ class Jobs(Resource):
     def get(self):
         """
         Send job by id
-        :arg: JSON with keys: job_id
+        :arg: job_id
         :return: job as JSON with keys:
             id: id of job
             name: name of job
             source1: name of first csv-file
             source2: name of second csv-file
-            selected_fields: JSON with keys: 'source1', 'sourrce2'. Values are entities field names
+            selected_fields: JSON with keys: 'source1', 'source2'. Values are entities field names
             output_file_name: name of file for results
             creation_date: timestamp
             creator: id of user
         """
         job = get_job_or_abort()
-        return job.__dict__
+        return job.to_dict()
 
-    def delete(self, f):
+    def delete(self):
         """
         Delete existing job from database
-        :arg: JSON with keys: job_id
+        :arg: job_id
         :return: status
         """
         job = get_job_or_abort()
@@ -46,20 +50,35 @@ class Jobs(Resource):
 
     def post(self):
         """
-        Add new job to database
+        Add new job and all entities to database
         :arg: JSON with keys: name, source1, source2, selected_fields, output_file_name
-        :return: status
+        :return: status, job_id
         """
         name = request.json.get('name')
         source1 = request.json.get('source1')
         source2 = request.json.get('source2')
         selected_fields = request.json.get('selected_fields')
         output_file_name = request.json.get('output_file_name')
-        user = User.query.filter(User.name == 'admin').first().id
+        user = User.query.filter(User.user_name == 'admin').first().id
 
         job = Job(name, source1, source2, selected_fields, output_file_name, user)
         job.save()
-        return {'status': 'Created'}
+
+        job = Job.query.filter(Job.name == job.name,
+                               Job.source1 == job.source1, Job.source2 == job.source2).first()
+        with open(job.source1) as csv_file:
+            reader = csv.DictReader(csv_file)
+            for row in reader:
+                name = row.pop(job.selected_fields['source1'])
+                entity = Entity(job.id, True, name, row)
+                entity.save()
+        with open(job.source2) as csv_file:
+            reader = csv.DictReader(csv_file)
+            for row in reader:
+                name = row.pop(job.selected_fields['source2'])
+                entity = Entity(job.id, False, name, row)
+                entity.save()
+        return {'status': 'Created', 'job_id': job.id}
 
 
 class JobList(Resource):
@@ -71,7 +90,8 @@ class JobList(Resource):
         jobs = Job.query.all()
         job_list = []
         for job in jobs:
-            job_list.append(job.__dict__)
+            job_dict = job.to_dict()
+            job_list.append(job_dict)
         return job_list
 
 
@@ -93,10 +113,10 @@ class FieldNames(Resource):
     def get(self):
         """
         Send entities field names from selected file
-        :arg: JSON with keys: file_path
+        :arg: file_path
         :return: list of field names
         """
-        file_path = request.json.get('file_path')
+        file_path = parser.parse_args()['file_path']
         with open(file_path, 'r') as csv_file:
             reader = csv.reader(csv_file)
             for row in reader:
@@ -107,7 +127,7 @@ class Entities(Resource):
     def get(self):
         """
         Send entities for job
-        :arg: JSON with keys: job_id
+        :arg: job_id
         :return: list of entities, where entity is JSON with keys:
             id: id of entity
             name: name of entity
@@ -119,26 +139,24 @@ class Entities(Resource):
         entities = Entity.query.filter(Entity.job_id == job.id).all()
         entity_list = []
         for entity in entities:
-            entity_list.append(entity.__dict__)
+            entity_list.append(entity.to_dict())
         return entity_list
 
+
+class Matching(Resource):
     def post(self):
         """
-        Add all entities to database from two source files
-        :arg: JSON with keys: job_id
+        Add matched pair to database
+        :arg: JSON with keys: entity1_id, entity2_id
         :return: status
         """
-        job = get_job_or_abort()
-        with open(job.source1) as csv_file:
-            reader = csv.DictReader(csv_file)
-            for row in reader:
-                name = row.pop(job.selected_fields['source1'])
-                entity = Entity(job.id, True, name, row)
-                entity.save()
-        with open(job.source2) as csv_file:
-            reader = csv.DictReader(csv_file)
-            for row in reader:
-                name = row.pop(job.selected_fields['source2'])
-                entity = Entity(job.id, False, name, row)
-                entity.save()
-        return {'status': 'All entities added'}
+        entity1_id = request.json.get('entity1_id')
+        entity2_id = request.json.get('entity2_id')
+        entity1 = Entity.query.filter(Entity.id == entity1_id).first()
+        entity2 = Entity.query.filter(Entity.id == entity2_id).first()
+        if not entity1 or not entity2:
+            abort(404, message="Entity {} or {} doesn't exist".format(entity1_id, entity2_id))
+        user = User.query.filter(User.user_name == 'admin').first().id
+        match = MatchedEntities(entity1_id, entity2_id, user)
+        match.save()
+        return {'status': 'Matched'}

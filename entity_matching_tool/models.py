@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSON
 
-from entity_matching_tool.app import db
+from entity_matching_tool.__init__ import db
 
 
 class Job(db.Model):
@@ -34,6 +34,12 @@ class Job(db.Model):
     def __repr__(self):
         return '<Job: "{}">'.format(self.name)
 
+    def to_dict(self):
+        job_dict = dict(self.__dict__)
+        job_dict.pop('_sa_instance_state', None)
+        job_dict['creation_date'] = job_dict['creation_date'].isoformat()
+        return job_dict
+
     def save(self):
         db.session.add(self)
         db.session.commit()
@@ -62,6 +68,11 @@ class Entity(db.Model):
 
     def __repr__(self):
         return '<Entity: "{}">'.format(self.name)
+
+    def to_dict(self):
+        entity_dict = dict(self.__dict__)
+        entity_dict.pop('_sa_instance_state', None)
+        return entity_dict
 
     def save(self):
         db.session.add(self)
