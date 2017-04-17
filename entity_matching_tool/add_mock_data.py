@@ -1,5 +1,5 @@
 from requests import get, post
-from models import User
+from .models import User
 
 
 if __name__ == "__main__":

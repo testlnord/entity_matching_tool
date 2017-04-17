@@ -1,5 +1,5 @@
 from entity_matching_tool import app, api
-from views import JobList, Jobs, CsvFiles, FieldNames, Entities, Matching
+from entity_matching_tool.views import JobList, Jobs, CsvFiles, FieldNames, Entities, Matching
 from flask import render_template
 
 

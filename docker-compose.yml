@@ -1,0 +1,13 @@
+version: '2'
+services:
+   db:
+     image: postgres
+   web:
+     build: .
+     command: bash -c "python main.py"
+     volumes:
+       - .:/code
+     ports:
+       - "5001:5000"
+     depends_on:
+       - db
