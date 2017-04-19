@@ -1,5 +1,10 @@
 # entity_matching_tool
-Tool for cozy manual datasets matching\
+Tool for cozy manual datasets matching
 
-# Build
-npm start
+# Build and Start
+`npm run build`
+`python3 main.py` 
+
+or 
+
+`./start.sh`
