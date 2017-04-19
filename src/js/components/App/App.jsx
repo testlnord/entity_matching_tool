@@ -31,15 +31,15 @@ class App extends Component {
                         <Navbar.Toggle />
                     </Navbar.Header>
                     <Navbar.Collapse>
-                        {/*<Navbar.Form pullRight>
+                        <Navbar.Form pullRight>
                             <FormGroup>
-                                <FormControl type="text" placeholder="Username" />
+                                <FormControl bsSize="sm" type="email" placeholder="Email" />
                                 {' '}
-                                <FormControl type="password" placeholder="Password" />
+                                <FormControl bsSize="sm" type="password" placeholder="Password" />
                             </FormGroup>
                             {' '}
-                            <Button bbStyle='succes'>Sign in</Button>
-                        </Navbar.Form>*/}
+                            <Button bsStyle='succes' bsSize="small">Sign in</Button>
+                        </Navbar.Form>
                     </Navbar.Collapse>
                 </Navbar>
                 <Grid>

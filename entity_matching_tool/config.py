@@ -15,7 +15,5 @@ class BaseConfig(object):
     SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI',
                               'postgresql://%(user)s:%(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SERVER_NAME = '0.0.0.0:5000'
-
 
 app_config = BaseConfig
