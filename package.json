@@ -23,7 +23,7 @@
   },
   "scripts": {
     "start": "npm install && react-scripts start",
-    "build": "react-scripts build && cp build/index.html entity_matching_tool/templates && cp -a build/static entity_matching_tool",
+    "build": "react-scripts build && mkdir templates && cp build/index.html templates/ && cp -a build/static .",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   }
