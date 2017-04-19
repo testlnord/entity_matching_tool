@@ -2,9 +2,12 @@
 Tool for cozy manual datasets matching
 
 # Build and Start
-`npm run build`
-`python3 main.py` 
-
+```
+npm run build
+python3 main.py
+```
 or 
 
-`./start.sh`
+```
+./start.sh
+```
