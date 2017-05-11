@@ -5,11 +5,11 @@ from flask import Flask
 from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
 
-from .config import app_config
+from .config import app_config, test_config
 
 
 app = Flask("Entity matching tool")
-app.config.from_object(app_config)
+app.config.from_object(test_config)
 db = SQLAlchemy(app)
 api = Api(app)
 

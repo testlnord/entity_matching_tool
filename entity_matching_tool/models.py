@@ -7,24 +7,26 @@ from . import db
 
 
 class Job(db.Model):
-    __tablename__ = 'job'
+    __tablename__ = 'jobs'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String())
     source1 = db.Column(db.String())
     source2 = db.Column(db.String())
     selected_fields = db.Column(JSON)
     output_file_name = db.Column(db.String(), unique=True)
-    creator = db.Column(db.Integer, db.ForeignKey('user.id'))
+    creator = db.Column(db.Integer, db.ForeignKey('users.id'))
     creation_date = db.Column(db.DateTime)
+    metric = db.Column(db.String())
     __table_args__ = (UniqueConstraint('name', 'source1', 'source2', name='unique_job_with_sources'),)
 
-    def __init__(self, name, source1, source2, selected_fields, output_file_name,
-                 creator, creation_date=None):
+    def __init__(self, name, source1, source2, selected_fields, output_file_name, metric,
+                 creator, creation_date=None, ):
         self.name = name
         self.source1 = source1
         self.source2 = source2
         self.selected_fields = selected_fields
         self.output_file_name = output_file_name
+        self.metric = metric
         self.creator = creator
         if creation_date:
             self.creation_date = creation_date
@@ -50,12 +52,13 @@ class Job(db.Model):
 
 
 class Entity(db.Model):
-    __tablename__ = 'entity'
+    __tablename__ = 'entities'
     id = db.Column(db.Integer, primary_key=True)
-    job_id = db.Column(db.Integer, db.ForeignKey('job.id'))
+    job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'))
     is_first_source = db.Column(db.Boolean)
     name = db.Column(db.String())
     other_fields = db.Column(JSON)
+    is_matched = db.Column(db.Boolean, default=False)
     __table_args__ = (UniqueConstraint('job_id', 'is_first_source', 'name', name='unique_entity_in_job'),)
 
     job = db.relationship('Job', backref=db.backref('entities', lazy='dynamic'))
@@ -74,6 +77,10 @@ class Entity(db.Model):
         entity_dict.pop('_sa_instance_state', None)
         return entity_dict
 
+    def set_as_matched(self):
+        self.is_matched = True
+        db.session.commit()
+
     def save(self):
         db.session.add(self)
         db.session.commit()
@@ -85,9 +92,9 @@ class Entity(db.Model):
 
 class MatchedEntities(db.Model):
     __tablename__ = 'matched_entities'
-    entity1_id = db.Column(db.Integer, db.ForeignKey('entity.id'), primary_key=True)
-    entity2_id = db.Column(db.Integer, db.ForeignKey('entity.id'), primary_key=True)
-    user = db.Column(db.Integer, db.ForeignKey('user.id'))
+    entity1_id = db.Column(db.Integer, db.ForeignKey('entities.id'), primary_key=True)
+    entity2_id = db.Column(db.Integer, db.ForeignKey('entities.id'), primary_key=True)
+    user = db.Column(db.Integer, db.ForeignKey('users.id'))
     __table_args__ = (UniqueConstraint('entity1_id', 'entity2_id', 'user', name='unique_matched_entities'),)
 
     def __init__(self, entity1_id, entity2_id, user):
@@ -97,6 +104,11 @@ class MatchedEntities(db.Model):
 
     def __repr__(self):
         return '<Matched Entities: {}, {}>'.format(self.entity1_id, self.entity2_id)
+
+    def to_dict(self):
+        entity_dict = dict(self.__dict__)
+        entity_dict.pop('_sa_instance_state', None)
+        return entity_dict
 
     def save(self):
         db.session.add(self)
@@ -108,7 +120,7 @@ class MatchedEntities(db.Model):
 
 
 class User(db.Model):
-    __tablename__ = 'user'
+    __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     user_name = db.Column(db.String(80), unique=True)
 

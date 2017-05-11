@@ -1,8 +1,11 @@
 import csv
+from enum import Enum
 import os
 
+from fuzzywuzzy import fuzz
 from flask import request
 from flask_restful import Resource, reqparse
+
 
 from .models import User, Job, Entity, MatchedEntities
 from entity_matching_tool import app
@@ -10,6 +13,7 @@ from entity_matching_tool import app
 parser = reqparse.RequestParser()
 parser.add_argument('job_id', type=int)
 parser.add_argument('file_path', type=str)
+parser.add_argument('last_entity_id', type=int)
 
 
 def get_job_or_abort():
@@ -34,6 +38,7 @@ class Jobs(Resource):
             selected_fields: JSON with keys: 'source1', 'source2'. Values are entities field names
             output_file_name: name of file for results
             creation_date: timestamp
+            matric: name of metric
             creator: id of user
         """
         try:
@@ -58,7 +63,7 @@ class Jobs(Resource):
     def post(self):
         """
         Add new job and all entities to database
-        :arg: JSON with keys: name, source1, source2, selected_fields, output_file_name
+        :arg: JSON with keys: name, source1, source2, selected_fields, output_file_name, metric
         :return: status, job_id
         """
         try:
@@ -67,9 +72,10 @@ class Jobs(Resource):
             source2 = request.json.get('source2')
             selected_fields = request.json.get('selected_fields')
             output_file_name = request.json.get('output_file_name')
+            metric = request.json.get('metric')
             user = User.query.filter(User.user_name == 'admin').first().id
 
-            job = Job(name, source1, source2, selected_fields, output_file_name, user)
+            job = Job(name, source1, source2, selected_fields, output_file_name, metric, user)
             job.save()
 
             job = Job.query.filter(Job.name == job.name,
@@ -142,23 +148,76 @@ class FieldNames(Resource):
             app.logger.exception(e)
 
 
+class MetricNames(Resource):
+    def get(self):
+        """
+        Send metric names
+        :return: list of metric names
+        """
+        try:
+            names = list(map(lambda x: x.value, Metric))
+            return names
+        except Exception as e:
+            app.logger.exception(e)
+
+
+class Metric(Enum):
+    SIMPLE = 'Simple'
+    PARTIAL = 'Partial'
+    TOKEN_SORT = 'Token Sort'
+    TOKEN_SET = 'Token Set'
+
+
+def sort_by_metric(first_entity, list_of_entities, name_metric):
+    try:
+        if name_metric == Metric.SIMPLE.value:
+            sort_function = fuzz.ratio
+        elif name_metric == Metric.PARTIAL.value:
+            sort_function = fuzz.partial_ratio
+        elif name_metric == Metric.TOKEN_SORT.value:
+            sort_function = fuzz.token_sort_ratio
+        elif name_metric == Metric.TOKEN_SET.value:
+            sort_function = fuzz.token_set_ratio
+        else:
+            app.logger.error("Metric name '{}' is not defined".format(name_metric))
+        res = []
+        for second_entity in list_of_entities:
+            res.append((sort_function(first_entity.name, second_entity.name), second_entity))
+        sorted_entities = list(map(lambda x: x[1], sorted(res, reverse=True)))
+        return sorted_entities
+    except Exception as e:
+        app.logger.exception(e)
+
+
 class Entities(Resource):
     def get(self):
         """
         Send entities for job
-        :arg: job_id
+        :arg: job_id, last_entity_id
         :return: list of entities, where entity is JSON with keys:
             id: id of entity
             name: name of entity
             job_id: id of job
-            is_first_sourse: Boolean value
+            is_first_source: Boolean value
             other_fields: JSON with another information about entity
         """
         try:
             job = get_job_or_abort()
-            entities = Entity.query.filter(Entity.job_id == job.id).all()
-            entity_list = []
-            for entity in entities:
+            last_entity_id = parser.parse_args()['last_entity_id']
+            entity_from_first_source = Entity.query.filter(Entity.job_id == job.id,
+                                                           Entity.is_first_source,
+                                                           Entity.is_matched == False,
+                                                           Entity.id > last_entity_id).first()
+            if entity_from_first_source is None:
+                return []
+            entity_list = [entity_from_first_source.to_dict()]
+            entities_from_second_source = Entity.query.filter(Entity.job_id == job.id,
+                                                              Entity.is_first_source == False,
+                                                              Entity.is_matched == False).all()
+            if entities_from_second_source is None:
+                return []
+            entities_from_second_source = sort_by_metric(entity_from_first_source, entities_from_second_source, job.metric)
+            for entity in entities_from_second_source:
                 entity_list.append(entity.to_dict())
             return entity_list
         except Exception as e:
@@ -176,12 +235,31 @@ class Matching(Resource):
             entity1_id = request.json.get('entity1_id')
             entity2_id = request.json.get('entity2_id')
             entity1 = Entity.query.filter(Entity.id == entity1_id).first()
+            entity1.set_as_matched()
             entity2 = Entity.query.filter(Entity.id == entity2_id).first()
+            entity2.set_as_matched()
             if not entity1 or not entity2:
                 app.logger.error("Entity {} or {} doesn't exist".format(entity1_id, entity2_id))
             user = User.query.filter(User.user_name == 'admin').first().id
             match = MatchedEntities(entity1_id, entity2_id, user)
             match.save()
             return {'status': 'Matched'}
+        except Exception as e:
+            app.logger.exception(e)
+
+    def get(self):
+        """
+        Send all matched entities
+        :return: list of pairs
+        """
+        try:
+            matched_entities = MatchedEntities.query.all()
+            print(matched_entities)
+            res = []
+            for match in matched_entities:
+                entity1 = Entity.query.filter(Entity.id == match.entity1_id).first().name
+                entity2 = Entity.query.filter(Entity.id == match.entity2_id).first().name
+                res.append((entity1, entity2))
+            return res
         except Exception as e:
             app.logger.exception(e)
