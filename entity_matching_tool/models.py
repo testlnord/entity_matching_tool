@@ -12,26 +12,26 @@ class Job(db.Model):
     name = db.Column(db.String())
     source1 = db.Column(db.String())
     source2 = db.Column(db.String())
-    selected_fields = db.Column(JSON)
-    output_file_name = db.Column(db.String(), unique=True)
+    selectedFields = db.Column(JSON)
+    outputFileName = db.Column(db.String(), unique=True)
     creator = db.Column(db.Integer, db.ForeignKey('users.id'))
-    creation_date = db.Column(db.DateTime)
+    creationDate = db.Column(db.DateTime)
     metric = db.Column(db.String())
     __table_args__ = (UniqueConstraint('name', 'source1', 'source2', name='unique_job_with_sources'),)
 
     def __init__(self, name, source1, source2, selected_fields, output_file_name, metric,
-                 creator, creation_date=None, ):
+                 creator, creation_date=None):
         self.name = name
         self.source1 = source1
         self.source2 = source2
-        self.selected_fields = selected_fields
-        self.output_file_name = output_file_name
+        self.selectedFields = selected_fields
+        self.outputFileName = output_file_name
         self.metric = metric
         self.creator = creator
         if creation_date:
-            self.creation_date = creation_date
+            self.creationDate = creation_date
         else:
-            self.creation_date = datetime.utcnow()
+            self.creationDate = datetime.utcnow()
 
     def __repr__(self):
         return '<Job: "{}">'.format(self.name)
@@ -39,7 +39,7 @@ class Job(db.Model):
     def to_dict(self):
         job_dict = dict(self.__dict__)
         job_dict.pop('_sa_instance_state', None)
-        job_dict['creation_date'] = job_dict['creation_date'].isoformat()
+        job_dict['creationDate'] = job_dict['creationDate'].isoformat()
         return job_dict
 
     def save(self):
@@ -54,20 +54,20 @@ class Job(db.Model):
 class Entity(db.Model):
     __tablename__ = 'entities'
     id = db.Column(db.Integer, primary_key=True)
-    job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'))
-    is_first_source = db.Column(db.Boolean)
+    jobId = db.Column(db.Integer, db.ForeignKey('jobs.id'))
+    isFirstSource = db.Column(db.Boolean)
     name = db.Column(db.String())
-    other_fields = db.Column(JSON)
-    is_matched = db.Column(db.Boolean, default=False)
-    __table_args__ = (UniqueConstraint('job_id', 'is_first_source', 'name', name='unique_entity_in_job'),)
+    otherFields = db.Column(JSON)
+    isMatched = db.Column(db.Boolean, default=False)
+    __table_args__ = (UniqueConstraint('jobId', 'isFirstSource', 'name', name='unique_entity_in_job'),)
 
     job = db.relationship('Job', backref=db.backref('entities', lazy='dynamic'))
 
     def __init__(self, job_id, is_first_source, name, other_fields):
-        self.job_id = job_id
-        self.is_first_source = is_first_source
+        self.jobId = job_id
+        self.isFirstSource = is_first_source
         self.name = name
-        self.other_fields = other_fields
+        self.otherFields = other_fields
 
     def __repr__(self):
         return '<Entity: "{}">'.format(self.name)
@@ -78,7 +78,7 @@ class Entity(db.Model):
         return entity_dict
 
     def set_as_matched(self):
-        self.is_matched = True
+        self.isMatched = True
         db.session.commit()
 
     def save(self):
@@ -122,10 +122,10 @@ class MatchedEntities(db.Model):
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
-    user_name = db.Column(db.String(80), unique=True)
+    userName = db.Column(db.String(80), unique=True)
 
     def __init__(self, user_name):
-        self.user_name = user_name
+        self.userName = user_name
 
     def __repr__(self):
         return '<User: {}>'.format(self.user_name)

@@ -10,14 +10,18 @@ from flask_restful import Resource, reqparse
 from .models import User, Job, Entity, MatchedEntities
 from entity_matching_tool import app
 
+JOB_ID = 'jobId'
+FILE_PATH = 'filePath'
+LAST_ENTITY_ID = 'lastEntityId'
+
 parser = reqparse.RequestParser()
-parser.add_argument('job_id', type=int)
-parser.add_argument('file_path', type=str)
-parser.add_argument('last_entity_id', type=int)
+parser.add_argument(JOB_ID, type=int)
+parser.add_argument(FILE_PATH, type=str)
+parser.add_argument(LAST_ENTITY_ID, type=int)
 
 
 def get_job_or_abort():
-    job_id = parser.parse_args()['job_id']
+    job_id = parser.parse_args()[JOB_ID]
     job = Job.query.filter(Job.id == job_id).first()
     if not job:
         app.logger.error("Job {} doesn't exist".format(job_id))
@@ -29,16 +33,16 @@ class Jobs(Resource):
     def get(self):
         """
         Send job by id
-        :arg: job_id
+        :arg: jobId
         :return: job as JSON with keys:
             id: id of job
             name: name of job
             source1: name of first csv-file
             source2: name of second csv-file
-            selected_fields: JSON with keys: 'source1', 'source2'. Values are entities field names
-            output_file_name: name of file for results
-            creation_date: timestamp
-            matric: name of metric
+            selectedFields: JSON with keys: 'source1', 'source2'. Values are entities field names
+            outputFileName: name of file for results
+            creationDate: timestamp
+            metric: name of metric
             creator: id of user
         """
         try:
@@ -50,7 +54,7 @@ class Jobs(Resource):
     def delete(self):
         """
         Delete existing job from database
-        :arg: job_id
+        :arg: jobId
         :return: status
         """
         try:
@@ -63,17 +67,17 @@ class Jobs(Resource):
     def post(self):
         """
         Add new job and all entities to database
-        :arg: JSON with keys: name, source1, source2, selected_fields, output_file_name, metric
-        :return: status, job_id
+        :arg: JSON with keys: name, source1, source2, selectedFields, outputFileFame, metric
+        :return: status, jobId
         """
         try:
             name = request.json.get('name')
             source1 = request.json.get('source1')
             source2 = request.json.get('source2')
-            selected_fields = request.json.get('selected_fields')
-            output_file_name = request.json.get('output_file_name')
+            selected_fields = request.json.get('selectedFields')
+            output_file_name = request.json.get('outputFileName')
             metric = request.json.get('metric')
-            user = User.query.filter(User.user_name == 'admin').first().id
+            user = User.query.filter(User.userName == 'admin').first().id
 
             job = Job(name, source1, source2, selected_fields, output_file_name, metric, user)
             job.save()
@@ -83,16 +87,16 @@ class Jobs(Resource):
             with open(job.source1) as csv_file:
                 reader = csv.DictReader(csv_file)
                 for row in reader:
-                    name = row.pop(job.selected_fields['source1'])
+                    name = row.pop(job.selectedFields['source1'])
                     entity = Entity(job.id, True, name, row)
                     entity.save()
             with open(job.source2) as csv_file:
                 reader = csv.DictReader(csv_file)
                 for row in reader:
-                    name = row.pop(job.selected_fields['source2'])
+                    name = row.pop(job.selectedFields['source2'])
                     entity = Entity(job.id, False, name, row)
                     entity.save()
-            return {'status': 'Created', 'job_id': job.id}
+            return {'status': 'Created', 'jobId': job.id}
         except Exception as e:
             app.logger.exception(e)
 
@@ -135,11 +139,11 @@ class FieldNames(Resource):
     def get(self):
         """
         Send entities field names from selected file
-        :arg: file_path
+        :arg: filePath
         :return: list of field names
         """
         try:
-            file_path = parser.parse_args()['file_path']
+            file_path = parser.parse_args()['filePath']
             with open(file_path, 'r') as csv_file:
                 reader = csv.reader(csv_file)
                 for row in reader:
@@ -193,27 +197,27 @@ class Entities(Resource):
     def get(self):
         """
         Send entities for job
-        :arg: job_id, last_entity_id
+        :arg: jobId, lastEntityId
         :return: list of entities, where entity is JSON with keys:
             id: id of entity
             name: name of entity
-            job_id: id of job
-            is_first_source: Boolean value
-            other_fields: JSON with another information about entity
+            jobId: id of job
+            isFirstSource: Boolean value
+            otherFields: JSON with another information about entity
         """
         try:
             job = get_job_or_abort()
-            last_entity_id = parser.parse_args()['last_entity_id']
-            entity_from_first_source = Entity.query.filter(Entity.job_id == job.id,
-                                                           Entity.is_first_source,
-                                                           Entity.is_matched == False,
+            last_entity_id = parser.parse_args()['lastEntityId']
+            entity_from_first_source = Entity.query.filter(Entity.jobId == job.id,
+                                                           Entity.isFirstSource,
+                                                           Entity.isMatched == False,
                                                            Entity.id > last_entity_id).first()
             if entity_from_first_source is None:
                 return []
             entity_list = [entity_from_first_source.to_dict()]
-            entities_from_second_source = Entity.query.filter(Entity.job_id == job.id,
-                                                              Entity.is_first_source == False,
-                                                              Entity.is_matched == False).all()
+            entities_from_second_source = Entity.query.filter(Entity.jobId == job.id,
+                                                              Entity.isFirstSource == False,
+                                                              Entity.isMatched == False).all()
             if entities_from_second_source is None:
                 return []
             entities_from_second_source = sort_by_metric(entity_from_first_source, entities_from_second_source, job.metric)
@@ -240,7 +244,7 @@ class Matching(Resource):
             entity2.set_as_matched()
             if not entity1 or not entity2:
                 app.logger.error("Entity {} or {} doesn't exist".format(entity1_id, entity2_id))
-            user = User.query.filter(User.user_name == 'admin').first().id
+            user = User.query.filter(User.userName == 'admin').first().id
             match = MatchedEntities(entity1_id, entity2_id, user)
             match.save()
             return {'status': 'Matched'}
@@ -254,7 +258,6 @@ class Matching(Resource):
         """
         try:
             matched_entities = MatchedEntities.query.all()
-            print(matched_entities)
             res = []
             for match in matched_entities:
                 entity1 = Entity.query.filter(Entity.id == match.entity1_id).first().name
