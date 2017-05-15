@@ -9,15 +9,28 @@ import FormGroup from 'react-bootstrap/lib/FormGroup';
 import AddJob from './AddJob';
 import ListJobs from './ListJobs';
 import ServerAPI from '../ServerAPI';
+import axios from 'axios';
 import './bootstrap.css';
 
 
 class App extends Component {
     constructor() {
         super();
-        this.state = {
-            jobs: ServerAPI.getJobsList(),
-        };
+    };
+
+    componentWillMount() {
+        /*axios.get('/csvfiles')
+            .then(function(response) {
+                console.log(response);
+            })
+        axios.get('/matching')
+            .then(function(response) {
+                console.log(response);
+            })*/
+        /*axios.get('/fieldnames/?file_path=entity_matching_tool/csv_files/customers.csv')
+            .then(function(response) {
+                console.log(response);
+            })*/
     };
   
     render() {
@@ -49,14 +62,12 @@ class App extends Component {
                             <AddJob/>
                         </div>
                         <div className="list-jobs">
-                            <ListJobs
-                              length={this.state.jobs.length}
-                            />
+                            <ListJobs/>
                         </div>
                     </div>
                 </Grid>
             </div>
-        );
+        ); 
     }
 }
 
