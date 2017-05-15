@@ -1,13 +1,10 @@
 import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
 import Button from 'react-bootstrap/lib/Button';
 import Panel from 'react-bootstrap/lib/Panel';
 import FormGroup from 'react-bootstrap/lib/FormGroup';
 import ControlLabel from 'react-bootstrap/lib/ControlLabel';
 import FormControl from 'react-bootstrap/lib/FormControl';
 import HelpBlock from 'react-bootstrap/lib/HelpBlock';
-import InputGroup from 'react-bootstrap/lib/InputGroup'
-import ServerAPI from '../ServerAPI';
 import axios from 'axios';
 
 
@@ -22,10 +19,6 @@ function FieldGroup({ id,status,label,help, ...props }) {
 };
 
 class AddJob extends Component {
-    getInitialState() {
-
-    }
-
     constructor() {
         super();
         this.state = {
@@ -34,7 +27,8 @@ class AddJob extends Component {
                 name: null,
                 source1: null,
                 source2: null,
-                selectedFields: null,
+                firstSelectedFields: null,
+                secondSelectedFields: null,
                 metric: null,
                 outputFileName: null
             },
@@ -79,7 +73,6 @@ class AddJob extends Component {
                 name: document.getElementById("jobName").value,
                 source1: document.getElementById("firstSource").value,
                 source2: document.getElementById("secondSource").value,
-                selectedFields: document.getElementById("firstSelectedFields").value,
                 selectedFields: {source1: document.getElementById("firstSelectedFields").value, 
                                     source2: document.getElementById("secondSelectedFields").value},
                 metric: document.getElementById("selectMetric").value,
@@ -168,7 +161,7 @@ class AddJob extends Component {
                                 {this.state.listPaths}
                             </FormControl>
                         </FormGroup>
-                        <FormGroup controlId="firstSelectedFields" validationState={this.state.status.selectedFields}>
+                        <FormGroup controlId="firstSelectedFields" validationState={this.state.status.firstSelectedFields}>
                             <ControlLabel>Selected fields for first file</ControlLabel>
                             <FormControl componentClass="select" multiple>
                                 {this.state.firstFields}
@@ -181,7 +174,7 @@ class AddJob extends Component {
                                 {this.state.listPaths}
                             </FormControl>
                         </FormGroup>
-                        <FormGroup controlId="secondSelectedFields" validationState={this.state.status.selectedFields}>
+                        <FormGroup controlId="secondSelectedFields" validationState={this.state.status.secondSelectedFields}>
                             <ControlLabel>Selected fields for second file</ControlLabel>
                             <FormControl componentClass="select" multiple>
                                 {this.state.secondFields}

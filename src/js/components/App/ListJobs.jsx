@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import Panel from 'react-bootstrap/lib/Panel';
 import PanelGroup  from 'react-bootstrap/lib/PanelGroup';
 import Well from 'react-bootstrap/lib/Well';
-import ServerAPI from '../ServerAPI';
 import axios from 'axios';
     
     
@@ -20,26 +19,26 @@ class ListJobs extends Component {
     componentWillMount() {
         let self = this;
         axios.get('/joblist')
-        .then(function(response) {            
-            self.setState({
-                listJobs: response.data != null ?
-                            response.data
-                                .map((job) => 
-                                    <Panel key={job.id} header={job.name} eventKey={job.name}>
-                                        {"Source 1"}
-                                        <Well>
-                                            {job.source1}
-                                        </Well>
-                                    
-                                        {"Source 2"}
-                                        <Well>
-                                            {job.source2}
-                                        </Well>
-                                    </Panel>
-                                ) 
-                            : null
-            });
-        })
+            .then(function(response) {            
+                self.setState({
+                    listJobs: response.data != null ?
+                                response.data
+                                    .map((job) => 
+                                        <Panel key={job.id} header={job.name} eventKey={job.name}>
+                                            {"Source 1"}
+                                            <Well>
+                                                {job.source1}
+                                            </Well>
+                                        
+                                            {"Source 2"}
+                                            <Well>
+                                                {job.source2}
+                                            </Well>
+                                        </Panel>
+                                    ) 
+                                : null
+                });
+            })
         
     };
 
