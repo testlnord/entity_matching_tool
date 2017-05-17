@@ -19,7 +19,7 @@ class ListJobs extends Component {
     componentWillMount() {
         let self = this;
         axios.get('/joblist')
-            .then(function(response) {            
+            .then(function(response) {      
                 self.setState({
                     listJobs: response.data != null ?
                                 response.data

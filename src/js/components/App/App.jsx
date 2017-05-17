@@ -5,10 +5,8 @@ import Navbar from 'react-bootstrap/lib/Navbar';
 import NavItem  from 'react-bootstrap/lib/NavItem';
 import FormControl from 'react-bootstrap/lib/FormControl';
 import Button from 'react-bootstrap/lib/Button';
+import { Link, browserHistory } from 'react-router';
 import FormGroup from 'react-bootstrap/lib/FormGroup';
-import AddJob from './AddJob';
-import ListJobs from './ListJobs';
-import axios from 'axios';
 import './bootstrap.css';
 
 
@@ -16,6 +14,16 @@ class App extends Component {
     constructor() {
         super();
     };
+
+    componentWillMount() {
+        if(localStorage.getItem('loginToken')) {
+            this.setState({
+                token: localStorage.getItem('loginToken') 
+            });
+        } else {
+            browserHistory.push('/login');
+        }
+    }
   
     render() {
         return (
@@ -23,32 +31,20 @@ class App extends Component {
                 <Navbar>
                     <Navbar.Header>
                         <Navbar.Brand>
-                          <span>Entity Matching Tool</span>
+                          <a href='/'>Entity Matching Tool</a>
                         </Navbar.Brand>
                         <Navbar.Toggle />
                     </Navbar.Header>
                     <Navbar.Collapse>
-                        <Navbar.Form pullRight>
-                            <FormGroup>
-                                <FormControl bsSize="sm" type="email" placeholder="Email" />
-                                {' '}
-                                <FormControl bsSize="sm" type="password" placeholder="Password" />
-                            </FormGroup>
-                            {' '}
-                            <Button bsStyle='succes' bsSize="small">Sign in</Button>
-                        </Navbar.Form>
+                        <Nav pullRight>
+                            <NavItem>
+                                <Link to='/login'> Login </Link>
+                            </NavItem>
+                        </Nav>
                     </Navbar.Collapse>
                 </Navbar>
                 <Grid>
-                    <div className="view-jobs">
-                        <div className="add-job">
-                            <h1>Jobs list</h1>
-                            <AddJob/>
-                        </div>
-                        <div className="list-jobs">
-                            <ListJobs/>
-                        </div>
-                    </div>
+                    {this.props.children}
                 </Grid>
             </div>
         ); 

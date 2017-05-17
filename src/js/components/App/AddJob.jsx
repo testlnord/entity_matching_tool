@@ -81,6 +81,8 @@ class AddJob extends Component {
         });
         let loadingTimer = setInterval(function() {
             if(this.state.jobToServer) {
+                localStorage.setItem('job', JSON.stringify(this.state.jobToServer));
+                console.log(JSON.parse(localStorage.getItem('job')));
                 clearInterval(loadingTimer);
                 let allContain = true;
                 let status = {};
@@ -100,7 +102,7 @@ class AddJob extends Component {
                 });
                 let self = this;
                 console.log(this.state.jobToServer);
-                allContain ? axios.post('/jobs', this.state.jobToServer)
+                allContain ? axios.post('/jobs/', this.state.jobToServer)
                                 .then(function(response) {
                                     console.log(response);
                                     axios.get('/joblist')
@@ -117,7 +119,7 @@ class AddJob extends Component {
     refreshFirstFields() {
         let self = this;
         let path = document.getElementById("firstSource").value;
-        axios.get('/fieldnames/?file_path=' + path)
+        axios.get('/fieldnames/?filePath=' + path)
             .then(function(response) {
                 self.setState({
                     firstFields: response.data
@@ -129,7 +131,7 @@ class AddJob extends Component {
     refreshSecondFields() {
         let self = this;
         let path = document.getElementById("secondSource").value;
-        axios.get('/fieldnames/?file_path=' + path)
+        axios.get('/fieldnames/?filePath=' + path)
             .then(function(response) {
                 self.setState({
                     secondFields: response.data
