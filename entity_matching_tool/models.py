@@ -2,6 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSON
+from passlib.apps import custom_app_context as pwd_context
 
 from . import db
 
@@ -122,17 +123,24 @@ class MatchedEntities(db.Model):
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
-    userName = db.Column(db.String(80), unique=True)
+    userName = db.Column(db.String(80), unique=True, index=True)
+    passwordHash = db.Column(db.String(128))
 
     def __init__(self, user_name):
         self.userName = user_name
 
     def __repr__(self):
-        return '<User: {}>'.format(self.user_name)
+        return '<User: {}>'.format(self.userName)
 
     def save(self):
         db.session.add(self)
         db.session.commit()
+
+    def hash_password(self, password):
+        self.passwordHash = pwd_context.encrypt(password)
+
+    def verify_password(self, password):
+        return pwd_context.verify(password, self.passwordHash)
 
 
 if __name__ == "__main__":

@@ -5,6 +5,7 @@ docker==2.2.1
 docker-py==1.10.6
 docker-pycreds==0.2.1
 Flask==0.12
+Flask-HTTPAuth==3.2.2
 Flask-RESTful==0.3.5
 Flask-Restless==0.17.0
 Flask-SQLAlchemy==2.2
@@ -15,6 +16,7 @@ MarkupSafe==1.0
 mimerender==0.6.0
 optional-django==0.3.0
 packaging==16.8
+passlib==1.7.1
 psycopg2==2.7.1
 pyparsing==2.2.0
 python-dateutil==2.6.0
