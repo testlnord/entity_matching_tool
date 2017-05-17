@@ -1,11 +1,12 @@
 import csv
 from enum import Enum
 import os
+from flask import g
 
 from fuzzywuzzy import fuzz
 from flask import request
-from flask_restful import Resource, reqparse
-
+from flask_restful import Resource, reqparse, abort
+from flask_httpauth import HTTPBasicAuth
 
 from .models import User, Job, Entity, MatchedEntities
 from entity_matching_tool import app
@@ -13,6 +14,8 @@ from entity_matching_tool import app
 JOB_ID = 'jobId'
 FILE_PATH = 'filePath'
 LAST_ENTITY_ID = 'lastEntityId'
+
+auth = HTTPBasicAuth()
 
 parser = reqparse.RequestParser()
 parser.add_argument(JOB_ID, type=int)
@@ -25,8 +28,34 @@ def get_job_or_abort():
     job = Job.query.filter(Job.id == job_id).first()
     if not job:
         app.logger.error("Job {} doesn't exist".format(job_id))
+        abort(404, message="Job {} doesn't exist".format(job_id))
     else:
         return job
+
+
+class Users(Resource):
+    def post(self):
+        username = request.json.get('userName')
+        password = request.json.get('password')
+        if username is None or password is None:
+            app.logger.error("Not entered username or password")
+            abort(400, message="Enter username and password")
+        if User.query.filter_by(userName=username).first() is not None:
+            abort(400, message="User with name {} already exists".format(username))
+        user = User(username)
+        user.hash_password(password)
+        user.save()
+        return {'status': 'Created', 'userName': username, 'userId': user.id}
+
+
+@auth.verify_password
+def verify_password(username, password):
+    user = User.query.filter_by(userName=username).first()
+    print(user)
+    if not user or not user.verify_password(password):
+        return False
+    g.user = user
+    return True
 
 
 class Jobs(Resource):
@@ -64,6 +93,7 @@ class Jobs(Resource):
         except Exception as e:
             app.logger.exception(e)
 
+    @auth.login_required
     def post(self):
         """
         Add new job and all entities to database
@@ -77,13 +107,11 @@ class Jobs(Resource):
             selected_fields = request.json.get('selectedFields')
             output_file_name = request.json.get('outputFileName')
             metric = request.json.get('metric')
-            user = User.query.filter(User.userName == 'admin').first().id
+            user = g.user.id
 
             job = Job(name, source1, source2, selected_fields, output_file_name, metric, user)
             job.save()
 
-            job = Job.query.filter(Job.name == job.name,
-                                   Job.source1 == job.source1, Job.source2 == job.source2).first()
             with open(job.source1) as csv_file:
                 reader = csv.DictReader(csv_file)
                 for row in reader:
@@ -102,13 +130,14 @@ class Jobs(Resource):
 
 
 class JobList(Resource):
+    @auth.login_required
     def get(self):
         """
         Send existing jobs
         :return: list of jobs
         """
         try:
-            jobs = Job.query.all()
+            jobs = Job.query.filter(Job.creator == g.user.id).all()
             job_list = []
             for job in jobs:
                 job_dict = job.to_dict()
@@ -229,6 +258,7 @@ class Entities(Resource):
 
 
 class Matching(Resource):
+    @auth.login_required
     def post(self):
         """
         Add matched pair to database
@@ -244,7 +274,7 @@ class Matching(Resource):
             entity2.set_as_matched()
             if not entity1 or not entity2:
                 app.logger.error("Entity {} or {} doesn't exist".format(entity1_id, entity2_id))
-            user = User.query.filter(User.userName == 'admin').first().id
+            user = g.user.id
             match = MatchedEntities(entity1_id, entity2_id, user)
             match.save()
             return {'status': 'Matched'}

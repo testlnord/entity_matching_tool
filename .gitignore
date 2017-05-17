@@ -1,5 +1,7 @@
 ## general stuff
 .idea
+static
+templates
 __pycache__
 
 ### Node ###
