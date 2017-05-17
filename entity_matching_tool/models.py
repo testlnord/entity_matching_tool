@@ -1,12 +1,10 @@
 from datetime import datetime
-from itsdangerous import (TimedJSONWebSignatureSerializer
-                          as Serializer, BadSignature, SignatureExpired)
 
 from sqlalchemy import UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSON
 from passlib.apps import custom_app_context as pwd_context
 
-from . import db, app
+from . import db
 
 
 class Job(db.Model):

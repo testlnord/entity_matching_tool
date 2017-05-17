@@ -1,10 +1,9 @@
 import csv
 from enum import Enum
 import os
-from flask import g
 
 from fuzzywuzzy import fuzz
-from flask import request
+from flask import request, g
 from flask_restful import Resource, reqparse, abort
 from flask_httpauth import HTTPBasicAuth
 
