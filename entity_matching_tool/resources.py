@@ -98,6 +98,7 @@ class Jobs(Resource):
                     entity.save()
             return {'status': 'Created', 'jobId': job.id}
         except Exception as e:
+            return {'status': 'Error', 'job': temp}
             app.logger.exception(e)
 
 
