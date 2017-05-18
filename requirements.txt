@@ -27,5 +27,6 @@ react==4.1.0
 requests==2.13.0
 six==1.10.0
 SQLAlchemy==1.1.6
+SQLAlchemy-Utils==0.32.14
 websocket-client==0.40.0
 Werkzeug==0.12.1
