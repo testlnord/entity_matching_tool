@@ -12,7 +12,7 @@ ReactDOM.render(
 	<Router history={browserHistory}>
 		<Route path='/' component={App}>
 			<IndexRoute component={Home} />
-			<Route path='login' component={Auth} />
+			<Route path='signin' component={Auth} />
 			<Route path='registr' component={Registr} />
 		</Route>
 	</Router>,

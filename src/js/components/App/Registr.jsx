@@ -37,12 +37,14 @@ class Auth extends Component {
 				password: this.state.password
 			} 
 			
-			axios.post('url', dataToRegistr)
+			axios.post('/regist/', dataToRegistr)
 				.then(function(response) {
 					if(response.status === 200) {
-						localStorage.setItem('loginToken', response.data.token);
-						browserHistory.push('/');
+						browserHistory.push('/signin');
 					}
+				})
+				.catch(function(response) {
+					console.log(response);
 				});
 		}
 	};
@@ -109,7 +111,8 @@ class Auth extends Component {
 									onChange={this.handleChange}
 								/>
 								<FormControl.Feedback />
-								<HelpBlock> {this.getLoginState() === 'warning' ? 'Must be longer than 4 characters' : null} </HelpBlock>
+								<HelpBlock> {this.getLoginState() === 'warning' 
+									? 'Must be longer than 4 characters' : null} </HelpBlock>
 							</Col>
 						</FormGroup>
 
@@ -127,7 +130,8 @@ class Auth extends Component {
 									onChange={this.handleChange} 
 								/>
 								<FormControl.Feedback />
-								<HelpBlock> {this.getPassState() === 'warning' ? 'Must be longer than 6 characters' : null} </HelpBlock>
+								<HelpBlock> {this.getPassState() === 'warning' 
+									? 'Must be longer than 6 characters' : null} </HelpBlock>
 							</Col>
 						</FormGroup>
 
@@ -146,7 +150,8 @@ class Auth extends Component {
 								/>
 								<FormControl.Feedback />
 								<HelpBlock>
-									{this.getConfirmPassState() === 'warning' ? 'Passwords don\'t equals' : null}
+									{this.getConfirmPassState() === 'warning' 
+										? 'Passwords don\'t equals' : null}
 								</HelpBlock>
 							</Col>
 						</FormGroup>

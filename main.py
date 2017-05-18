@@ -15,6 +15,8 @@ api.add_resource(Token, '/login/')
 
 
 @app.route('/')
+@app.route('/signin/')
+@app.route('/registr/')
 @app.route('/joblist/')
 @app.route('/jobs/')
 @app.route('/csvfiles/')

@@ -5,6 +5,7 @@ import FormGroup from 'react-bootstrap/lib/FormGroup';
 import ControlLabel from 'react-bootstrap/lib/ControlLabel';
 import FormControl from 'react-bootstrap/lib/FormControl';
 import HelpBlock from 'react-bootstrap/lib/HelpBlock';
+import ListJobs from './ListJobs';
 import axios from 'axios';
 
 
@@ -81,8 +82,6 @@ class AddJob extends Component {
         });
         let loadingTimer = setInterval(function() {
             if(this.state.jobToServer) {
-                localStorage.setItem('job', JSON.stringify(this.state.jobToServer));
-                console.log(JSON.parse(localStorage.getItem('job')));
                 clearInterval(loadingTimer);
                 let allContain = true;
                 let status = {};
@@ -101,15 +100,17 @@ class AddJob extends Component {
                     status: status 
                 });
                 let self = this;
-                console.log(this.state.jobToServer);
-                allContain ? axios.post('/jobs/', this.state.jobToServer)
+                allContain ? axios.post('http://' + localStorage.getItem('loginToken') + ':' + '@localhost:5000/jobs/')
                                 .then(function(response) {
-                                    console.log(response);
-                                    axios.get('/joblist')
-                                        .then(function(resp) {
-                                            console.log(resp);
-                                        })
-                                    self.setState({isLoading: false})
+                                    document.getElementById("jobName").value = null;
+                                    document.getElementById("firstSource").value = null;
+                                    document.getElementById("secondSource").value = null;
+                                    document.getElementById("firstSelectedFields").value = null;
+                                    document.getElementById("secondSelectedFields").value = null;
+                                    document.getElementById("selectMetric").value = null;
+                                    document.getElementById("outputFileName").value = null;
+                                    self.setState({open: !self.state.open, 
+                                                isLoading: false})
                                 })
                     : this.setState({ isLoading : false });
             }
@@ -159,7 +160,6 @@ class AddJob extends Component {
                             <ControlLabel>Choose first path to csv file</ControlLabel>
                             <FormControl  componentClass="select" onChange={this.refreshFirstFields} 
                                     >
-                                <option>...</option>
                                 {this.state.listPaths}
                             </FormControl>
                         </FormGroup>
@@ -172,7 +172,6 @@ class AddJob extends Component {
                         <FormGroup controlId="secondSource" validationState={this.state.status.source2}>
                             <ControlLabel>Choose second path to csv file</ControlLabel>
                             <FormControl  componentClass="select" onChange={this.refreshSecondFields}>
-                                <option>...</option>
                                 {this.state.listPaths}
                             </FormControl>
                         </FormGroup>
@@ -184,8 +183,7 @@ class AddJob extends Component {
                         </FormGroup>
                         <FormGroup controlId="selectMetric" validationState={this.state.status.metric}>
                             <ControlLabel>Choose metric</ControlLabel>
-                            <FormControl componentClass="select" placeholder="...">
-                                <option>...</option>
+                            <FormControl componentClass="select">
                                 {this.state.metrics}
                             </FormControl>
                         </FormGroup>

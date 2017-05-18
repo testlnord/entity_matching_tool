@@ -13,18 +13,32 @@ import './bootstrap.css';
 class App extends Component {
     constructor() {
         super();
+        this.state = {
+            isLogin: localStorage.getItem('loginToken') ? true : false
+        }
     };
 
     componentWillMount() {
-        if(localStorage.getItem('loginToken')) {
+        if(this.state.isLogin) {
             this.setState({
                 token: localStorage.getItem('loginToken') 
             });
         } else {
-            browserHistory.push('/login');
+            browserHistory.push('/signin');
         }
     }
-  
+
+    loginLogout() {
+        if (this.state.isLogin) {
+            localStorage.removeItem('loginToken')
+            this.setState({
+                isLogin: !this.state.isLogin 
+            });
+        }
+
+        browserHistory.push('/signin');
+    }
+
     render() {
         return (
             <div>
@@ -37,8 +51,8 @@ class App extends Component {
                     </Navbar.Header>
                     <Navbar.Collapse>
                         <Nav pullRight>
-                            <NavItem>
-                                <Link to='/login'> Login </Link>
+                            <NavItem onClick={() => this.loginLogout()}>
+                                {this.state.isLogin ? "Logout" : "Login"}
                             </NavItem>
                         </Nav>
                     </Navbar.Collapse>

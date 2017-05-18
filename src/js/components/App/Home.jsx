@@ -4,6 +4,10 @@ import ListJobs from './ListJobs';
 
 
 class Home extends Component {
+	constructor() {
+		super();
+	}
+
 	render() {
 		return (
 			<div className="view-jobs">

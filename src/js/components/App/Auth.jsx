@@ -24,22 +24,18 @@ class Auth extends Component {
 	}
 
 	auth() {
-		const dataToAuth = {
-			userName: this.state.login,
-			password: this.state.password
-		}
-		axios.post('url', dataToAuth)
+		let self = this;
+		axios.get('http://' + this.state.login + ':' + this.state.password + '@localhost:5000/login/')
 			.then(function(response) {
-				if (response.status === 200) {
-					localStorage.setItem('loginToken', response.data.token);
-					browserHistory.push('/');
-				} else {
-					this.setState({
-						login: "",
+				localStorage.setItem('loginToken', response.data.token);
+				browserHistory.push('/');
+				
+			})
+			.catch(function(response) {
+				self.setState({
 						password: "",
 						status: "error"
 					});
-				}
 			})
 	}
 
@@ -87,7 +83,7 @@ class Auth extends Component {
 									onChange={this.handleChange}
 								/>
 								<FormControl.Feedback />
-								<HelpBlock>{this.state.status === "error" ? "Invalid login\password" : null} </HelpBlock>
+								<HelpBlock>{this.state.status === "error" ? "Invalid login or password" : null} </HelpBlock>
 							</Col>
 						</FormGroup>
 
