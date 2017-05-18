@@ -9,7 +9,7 @@ from .config import app_config, test_config
 
 
 app = Flask("Entity matching tool")
-app.config.from_object(test_config)
+app.config.from_object(app_config)
 db = SQLAlchemy(app)
 api = Api(app)
 

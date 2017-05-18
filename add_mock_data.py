@@ -10,7 +10,8 @@ if __name__ == "__main__":
               source2='entity_matching_tool/csv_files/customers.csv',
               selected_fields={"source2": "company", "source1": "company_name"},
               output_file_name='job1_results',
-              creator=1)
+              creator=1,
+              metric=1)
     job.save()
     e1 = Entity(job_id=1,
                 is_first_source=True,

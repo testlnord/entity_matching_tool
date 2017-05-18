@@ -4,7 +4,7 @@ services:
      image: postgres
    web:
      build: .
-     command: bash -c "python main.py"
+     command:  bash -c "python main.py"
      volumes:
        - .:/code
      ports:

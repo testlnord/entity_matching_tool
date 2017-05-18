@@ -25,6 +25,13 @@ def get_job_or_abort():
         return job
 
 
+class MainPage(Resource):
+    def get(self):
+        logger = logging.getLogger("main.index")
+        logger.warning("asdf")
+        return render_template('index.html')
+
+
 class Jobs(Resource):
     def get(self):
         """
