@@ -1,10 +1,12 @@
 from datetime import datetime
+from itsdangerous import (TimedJSONWebSignatureSerializer
+                          as Serializer, BadSignature, SignatureExpired)
 
 from sqlalchemy import UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSON
 from passlib.apps import custom_app_context as pwd_context
 
-from . import db
+from entity_matching_tool import db, app
 
 
 class Job(db.Model):
@@ -142,6 +144,21 @@ class User(db.Model):
     def verify_password(self, password):
         return pwd_context.verify(password, self.passwordHash)
 
+    def generate_auth_token(self, expiration=None):
+        s = Serializer(app.config['SECRET_KEY'], expires_in=expiration)
+        return s.dumps({'id': self.id})
 
-if __name__ == "__main__":
-    db.create_all()
+    @staticmethod
+    def verify_auth_token(token):
+        s = Serializer(app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except SignatureExpired:
+            return None
+        except BadSignature:
+            return None
+        user = User.query.get(data['id'])
+        return user
+
+
+db.create_all()

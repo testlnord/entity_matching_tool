@@ -47,12 +47,22 @@ class Users(Resource):
         return {'status': 'Created', 'userName': username, 'userId': user.id}
 
 
+class Token(Resource):
+    @auth.login_required
+    def get(self):
+        token = g.user.generate_auth_token()
+        print(token)
+        print(token.decode('ascii'))
+        return {'token': token.decode('ascii')}
+
+
 @auth.verify_password
-def verify_password(username, password):
-    user = User.query.filter_by(userName=username).first()
-    print(user)
-    if not user or not user.verify_password(password):
-        return False
+def verify_password(username_or_token, password='qwerty'):
+    user = User.verify_auth_token(username_or_token)
+    if not user:
+        user = User.query.filter_by(userName=username_or_token).first()
+        if not user or not user.verify_password(password):
+            return False
     g.user = user
     return True
 
@@ -125,7 +135,6 @@ class Jobs(Resource):
                     entity.save()
             return {'status': 'Created', 'jobId': job.id}
         except Exception as e:
-            return {'status': 'Error', 'job': temp}
             app.logger.exception(e)
 
 

@@ -1,5 +1,5 @@
-from entity_matching_tool import app, api
-from entity_matching_tool.resources import JobList, Jobs, CsvFiles, FieldNames, Entities, Matching, MetricNames, Users
+from entity_matching_tool import app, api, models
+from entity_matching_tool.resources import JobList, Jobs, CsvFiles, FieldNames, Entities, Matching, MetricNames, Users, Token
 from flask import render_template
 
 
@@ -10,10 +10,16 @@ api.add_resource(FieldNames, '/fieldnames/')
 api.add_resource(Entities, '/entities/')
 api.add_resource(Matching, '/matching/')
 api.add_resource(MetricNames, '/metrics/')
-api.add_resource(Users, '/users/')
+api.add_resource(Users, '/regist/')
+api.add_resource(Token, '/login/')
 
 
 @app.route('/')
+@app.route('/joblist/')
+@app.route('/jobs/')
+@app.route('/csvfiles/')
+@app.route('/fieldnames/')
+@app.route('/metrics/')
 def index():
     return render_template('index.html')
 

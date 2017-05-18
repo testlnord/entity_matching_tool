@@ -33,5 +33,6 @@ class TestConfig(object):
                                              'postgresql://%(user)s:%(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+
 app_config = BaseConfig
 test_config = TestConfig
