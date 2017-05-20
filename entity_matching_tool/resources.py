@@ -8,11 +8,13 @@ from flask_restful import Resource, reqparse, abort
 from flask_httpauth import HTTPBasicAuth
 
 from .models import User, Job, Entity, MatchedEntities
-from entity_matching_tool import app, db
+from entity_matching_tool import app
 
 JOB_ID = 'jobId'
 FILE_PATH = 'filePath'
 LAST_ENTITY_ID = 'lastEntityId'
+MATCH_ID = 'matchId'
+ENTITY_ID = 'entityId'
 
 auth = HTTPBasicAuth()
 
@@ -20,6 +22,8 @@ parser = reqparse.RequestParser()
 parser.add_argument(JOB_ID, type=int)
 parser.add_argument(FILE_PATH, type=str)
 parser.add_argument(LAST_ENTITY_ID, type=int)
+parser.add_argument(MATCH_ID, type=int)
+parser.add_argument(ENTITY_ID, type=int)
 
 
 def get_job_or_abort():
@@ -51,8 +55,6 @@ class Token(Resource):
     @auth.login_required
     def get(self):
         token = g.user.generate_auth_token()
-        print(token)
-        print(token.decode('ascii'))
         return {'token': token.decode('ascii')}
 
 
@@ -265,9 +267,17 @@ class Entities(Resource):
         except Exception as e:
             app.logger.exception(e)
 
+    def delete(self):
+        try:
+            entity_id = parser.parse_args()[ENTITY_ID]
+            entity = Entity.query.filter(Entity.id == entity_id).first()
+            entity.delete()
+            return {'status': 'Deleted'}
+        except Exception as e:
+            app.logger.exception(e)
+
 
 class Matching(Resource):
-    @auth.login_required
     def post(self):
         """
         Add matched pair to database
@@ -283,25 +293,72 @@ class Matching(Resource):
             entity2.set_as_matched()
             if not entity1 or not entity2:
                 app.logger.error("Entity {} or {} doesn't exist".format(entity1_id, entity2_id))
-            user = g.user.id
-            match = MatchedEntities(entity1_id, entity2_id, user)
+            job_id = entity1.jobId
+            match = MatchedEntities(entity1_id, entity2_id, job_id)
             match.save()
             return {'status': 'Matched'}
         except Exception as e:
             app.logger.exception(e)
 
     def get(self):
-        """
-        Send all matched entities
-        :return: list of pairs
-        """
         try:
-            matched_entities = MatchedEntities.query.all()
+            job_id = parser.parse_args()[JOB_ID]
+            matched_entities = MatchedEntities.query.filter(MatchedEntities.jobId == job_id).all()
             res = []
             for match in matched_entities:
                 entity1 = Entity.query.filter(Entity.id == match.entity1_id).first().name
                 entity2 = Entity.query.filter(Entity.id == match.entity2_id).first().name
-                res.append((entity1, entity2))
+                res.append({MATCH_ID: match.id, 'entity1': entity1, 'entity2': entity2})
             return res
         except Exception as e:
             app.logger.exception(e)
+
+    def delete(self):
+        try:
+            match_id = parser.parse_args()[MATCH_ID]
+            match = MatchedEntities.query.filter(MatchedEntities.id == match_id).first()
+            entity1 = Entity.query.filter(Entity.id == match.entity1_id).first()
+            entity1.isMatched = False
+            entity1.save()
+            entity2 = Entity.query.filter(Entity.id == match.entity2_id).first()
+            entity2.isMatched = False
+            entity2.save()
+            match.delete()
+            return {'status': 'Deleted'}
+        except Exception as e:
+            app.logger.exception(e)
+
+
+class SavingResults(Resource):
+    def __init__(self):
+        self.directory_path = 'entity_matching_tool/result_files/'
+
+    def get(self):
+        try:
+            job = get_job_or_abort()
+            if not os.path.exists(self.directory_path):
+                os.makedirs(self.directory_path)
+            matched_entities = MatchedEntities.query.filter(MatchedEntities.jobId == job.id).all()
+            with open(self.directory_path + job.outputFileName + '.csv', 'w') as csvfile:
+                fieldnames = ['entity1', 'entity2']
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                for match in matched_entities:
+                    entity1 = Entity.query.filter(Entity.id == match.entity1_id).first().name
+                    entity2 = Entity.query.filter(Entity.id == match.entity2_id).first().name
+                    writer.writerow({'entity1': entity1, 'entity2': entity2})
+        except Exception as e:
+            app.logger.exception(e)
+
+
+class ChangingMetric(Resource):
+    def post(self):
+        try:
+            job_id = request.json.get(JOB_ID)
+            metric = request.json.get('metric')
+            job = Job.query.filter(Job.id == job_id).first()
+            job.metric = metric
+            job.save()
+        except Exception as e:
+            app.logger.exception(e)
+

@@ -93,6 +93,7 @@ class Entity(db.Model):
 
 class MatchedEntities(db.Model):
     __tablename__ = 'matched_entities'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     entity1_id = db.Column(db.Integer, db.ForeignKey('entities.id', ondelete='CASCADE'), primary_key=True)
     entity2_id = db.Column(db.Integer, db.ForeignKey('entities.id', ondelete='CASCADE'), primary_key=True)
     jobId = db.Column(db.Integer, db.ForeignKey('jobs.id', ondelete='CASCADE'))
@@ -158,5 +159,5 @@ class User(db.Model):
         user = User.query.get(data['id'])
         return user
 
-
+db.drop_all()
 db.create_all()

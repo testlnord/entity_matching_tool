@@ -3,6 +3,7 @@
 static
 templates
 __pycache__
+entity_matching_tool/result_files
 
 ### Node ###
 # Logs
