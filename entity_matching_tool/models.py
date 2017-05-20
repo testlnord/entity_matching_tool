@@ -20,7 +20,7 @@ class Job(db.Model):
     creator = db.Column(db.Integer, db.ForeignKey('users.id'))
     creationDate = db.Column(db.DateTime)
     metric = db.Column(db.String())
-    __table_args__ = (UniqueConstraint('name', 'source1', 'source2', name='unique_job_with_sources'),)
+    __table_args__ = (UniqueConstraint('creator', 'source1', 'source2', name='unique_creator_with_sources'),)
 
     def __init__(self, name, source1, source2, selected_fields, output_file_name, metric,
                  creator, creation_date=None):
@@ -57,14 +57,12 @@ class Job(db.Model):
 class Entity(db.Model):
     __tablename__ = 'entities'
     id = db.Column(db.Integer, primary_key=True)
-    jobId = db.Column(db.Integer, db.ForeignKey('jobs.id'))
+    jobId = db.Column(db.Integer, db.ForeignKey('jobs.id', ondelete='CASCADE'))
     isFirstSource = db.Column(db.Boolean)
     name = db.Column(db.String())
     otherFields = db.Column(JSON)
     isMatched = db.Column(db.Boolean, default=False)
     __table_args__ = (UniqueConstraint('jobId', 'isFirstSource', 'name', name='unique_entity_in_job'),)
-
-    job = db.relationship('Job', backref=db.backref('entities', lazy='dynamic'))
 
     def __init__(self, job_id, is_first_source, name, other_fields):
         self.jobId = job_id
@@ -95,15 +93,15 @@ class Entity(db.Model):
 
 class MatchedEntities(db.Model):
     __tablename__ = 'matched_entities'
-    entity1_id = db.Column(db.Integer, db.ForeignKey('entities.id'), primary_key=True)
-    entity2_id = db.Column(db.Integer, db.ForeignKey('entities.id'), primary_key=True)
-    user = db.Column(db.Integer, db.ForeignKey('users.id'))
-    __table_args__ = (UniqueConstraint('entity1_id', 'entity2_id', 'user', name='unique_matched_entities'),)
+    entity1_id = db.Column(db.Integer, db.ForeignKey('entities.id', ondelete='CASCADE'), primary_key=True)
+    entity2_id = db.Column(db.Integer, db.ForeignKey('entities.id', ondelete='CASCADE'), primary_key=True)
+    jobId = db.Column(db.Integer, db.ForeignKey('jobs.id', ondelete='CASCADE'))
+    __table_args__ = (UniqueConstraint('entity1_id', 'entity2_id', 'jobId', name='unique_matched_entities'),)
 
-    def __init__(self, entity1_id, entity2_id, user):
+    def __init__(self, entity1_id, entity2_id, job_id):
         self.entity1_id = entity1_id
         self.entity2_id = entity2_id
-        self.user = user
+        self.jobId = job_id
 
     def __repr__(self):
         return '<Matched Entities: {}, {}>'.format(self.entity1_id, self.entity2_id)

@@ -8,7 +8,7 @@ from flask_restful import Resource, reqparse, abort
 from flask_httpauth import HTTPBasicAuth
 
 from .models import User, Job, Entity, MatchedEntities
-from entity_matching_tool import app
+from entity_matching_tool import app, db
 
 JOB_ID = 'jobId'
 FILE_PATH = 'filePath'
@@ -97,7 +97,7 @@ class Jobs(Resource):
         """
         try:
             job = get_job_or_abort()
-            Job.query.filter(Job.id == job.id).delete()
+            job.delete()
             return {'status': 'Deleted'}
         except Exception as e:
             app.logger.exception(e)
