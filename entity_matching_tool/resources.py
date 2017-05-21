@@ -84,10 +84,15 @@ class Jobs(Resource):
             creationDate: timestamp
             metric: name of metric
             creator: id of user
+            status: percent of done
         """
         try:
             job = get_job_or_abort()
-            return job.to_dict()
+            dict_job = job.to_dict()
+            num_of_matched = len(MatchedEntities.query.filter(MatchedEntities.jobId == job.id).all())
+            num_of_entities = len(Entity.query.filter(Entity.jobId == job.id, Entity.isMatched == False).all())
+            dict_job['status'] = (num_of_matched / (num_of_entities + num_of_matched)) * 100
+            return dict_job
         except Exception as e:
             app.logger.exception(e)
 
