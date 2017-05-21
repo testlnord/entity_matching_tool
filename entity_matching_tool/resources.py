@@ -92,7 +92,7 @@ class Jobs(Resource):
             num_of_matched = len(MatchedEntities.query.filter(MatchedEntities.jobId == job.id).all())
             num_of_entities = len(Entity.query.filter(Entity.jobId == job.id, Entity.isMatched == False).all())
             dict_job['status'] = (num_of_matched / (num_of_entities + num_of_matched)) * 100
-            return
+            return dict_job
         except Exception as e:
             app.logger.exception(e)
 
