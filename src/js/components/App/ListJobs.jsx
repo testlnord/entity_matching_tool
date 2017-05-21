@@ -84,7 +84,6 @@ class ListJobs extends Component {
                                                     <Button 
                                                         bsStyle='success' 
                                                         onClick={() => self.changeMetric(job.id)}
-                                                        {/*disabled={!self.state.isChanged ? false : console.log(self.state.isChanged)}*/}
                                                         >  
                                                         Change metric
                                                     </Button>
