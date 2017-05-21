@@ -47,14 +47,14 @@ class AddJob extends Component {
 
     componentWillMount() {
         let self = this;
-        axios.get('/metrics')
+        axios.get('/metrics/')
             .then(function(response) {
                 self.setState({
                     metrics: response.data
                                 .map((metric) => <option key={metric} value={metric}>{metric}</option>)
                 });
             });
-        axios.get('/csvfiles')
+        axios.get('/csvfiles/')
             .then(function(response) {
                 self.setState({
                     listPaths: response.data
