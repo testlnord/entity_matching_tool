@@ -159,5 +159,5 @@ class User(db.Model):
         user = User.query.get(data['id'])
         return user
 
-db.drop_all()
+
 db.create_all()
