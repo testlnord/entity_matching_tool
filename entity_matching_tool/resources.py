@@ -89,9 +89,6 @@ class Jobs(Resource):
         try:
             job = get_job_or_abort()
             dict_job = job.to_dict()
-            num_of_matched = len(MatchedEntities.query.filter(MatchedEntities.jobId == job.id).all())
-            num_of_entities = len(Entity.query.filter(Entity.jobId == job.id, Entity.isMatched == False).all())
-            dict_job['status'] = (num_of_matched / (num_of_entities + num_of_matched)) * 100
             return dict_job
         except Exception as e:
             app.logger.exception(e)
@@ -157,6 +154,9 @@ class JobList(Resource):
             job_list = []
             for job in jobs:
                 job_dict = job.to_dict()
+                num_of_matched = len(MatchedEntities.query.filter(MatchedEntities.jobId == job.id).all())
+                num_of_entities = len(Entity.query.filter(Entity.jobId == job.id, Entity.isMatched == False).all())
+                job_dict['status'] = (num_of_matched / (num_of_entities + num_of_matched)) * 100 
                 job_list.append(job_dict)
             return job_list
         except Exception as e:
