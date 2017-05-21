@@ -227,7 +227,7 @@ def sort_by_metric(first_entity, list_of_entities, name_metric):
         res = []
         for second_entity in list_of_entities:
             res.append((sort_function(first_entity.name, second_entity.name), second_entity))
-        sorted_entities = list(map(lambda x: x[1], sorted(res, reverse=True)))
+        sorted_entities = list(map(lambda x: x[1], sorted(res, key=lambda x: -x[0])))
         return sorted_entities
     except Exception as e:
         app.logger.exception(e)
