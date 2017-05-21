@@ -7,6 +7,7 @@ import FormControl from 'react-bootstrap/lib/FormControl';
 import Button from 'react-bootstrap/lib/Button';
 import ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar';
 import HelpBlock from 'react-bootstrap/lib/HelpBlock';
+import Table from 'react-bootstrap/lib/Table';
 
 
 class Mathcing extends Component {
@@ -21,6 +22,7 @@ class Mathcing extends Component {
 			currentEntityId: 0,
 			metrics: null,
 			help: false,
+			listMatchingEntity: null,
 			url: localStorage.getItem('loginToken') ? 'http://' + localStorage.getItem('loginToken') + ':@localhost:5000' : null
 		};
 		this.match = this.match.bind(this);
@@ -39,15 +41,9 @@ class Mathcing extends Component {
                                 .map((metric) => <option key={metric} value={metric}>{metric}</option>)
                 });
             });
-        /*axios.get(this.state.url + "/entities/?jobId=" + this.props.params.id + "&lastEntityId=0")
-        	.then(function(response){
-	            self.setState({
-	            	matchingEntity: response.data[0] ? response.data[0] : {name: "All entity was matched", id: 0},
-	            	listEntities: response.data.slice(1, response.data.length)
-	            		.map((entity) => <option key={entity.id} value={entity.id}>{entity.name}</option>)
-	            });
-        	});*/
+
        	this.refreshEntities();
+        this.refreshTableEntities();
 	}
 
 	match() {
@@ -63,6 +59,7 @@ class Mathcing extends Component {
 			}).then(function(response) {
 				console.log(response);
 				self.refreshEntities(self.state.matchingEntity.id)
+				self.refreshTableEntities();
 			})
 		} else {
 			this.setState({
@@ -76,6 +73,7 @@ class Mathcing extends Component {
 			id = 0;
 		}
 		let self = this;
+		console.log(this.state.url + "/entities/?jobId=" + this.props.params.id + "&lastEntityId=" + id);
 		axios.get(this.state.url + "/entities/?jobId=" + this.props.params.id + "&lastEntityId=" + id)
             .then(function(response){
             	console.log(response);
@@ -93,6 +91,23 @@ class Mathcing extends Component {
             });
 	}
 
+	refreshTableEntities() {
+		let self = this;
+		axios.get(this.state.url + "/matching/?jobId=" + this.props.params.id)
+        	.then(function(response) {
+        		self.setState({
+        			listMatchingEntity: response.data
+        									.map((entity) => 
+        										<tr>
+	        										<td> {entity.matchId} </td>
+	        										<td> {entity.entity1} </td>
+	        										<td> {entity.entity2} </td>	
+        										</tr>	
+        									) 
+        		});
+        	});
+	}
+
 	changeMetric() {
         let self = this;
         axios.post(this.state.url + '/changemetric/', {
@@ -105,6 +120,7 @@ class Mathcing extends Component {
 
     toStart() {
     	this.refreshEntities();
+    	this.refreshTableEntities();
     }
 
 
@@ -131,6 +147,18 @@ class Mathcing extends Component {
                		</FormControl>
                		<HelpBlock>{this.state.help ? "Select entity" : null} </HelpBlock>
                	</FormGroup>
+               	<Table striped bordered condensed hover>
+               	<thead>
+               		<tr>
+               			<th> {"Match Id"} </th>
+               			<th> {"Name of first entity"} </th>
+               			<th> {"Name of second entity"} </th>
+               		</tr>
+               	</thead>
+               	<tbody>
+               		{this.state.listMatchingEntity}
+               	</tbody>
+               	</Table>
                	<ButtonToolbar>
 	                <Button bsStyle='success' onClick={() => this.match()}> Matching </Button>
 	                <Button onClick={() => this.refreshEntities(this.state.matchingEntity.id)}> Next entity </Button>
