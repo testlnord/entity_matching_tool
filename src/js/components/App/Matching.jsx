@@ -120,7 +120,7 @@ class Mathcing extends Component {
 				entity1_id: this.state.matchingEntity.id,
 				entity2_id: document.getElementById('listEntities').value
 			}).then(function(response) {
-				self.refreshEntities()
+				self.refreshEntities(self.state.matchingEntity.id)
 				self.refreshTableEntities();
 			})
 		} else {
@@ -131,10 +131,13 @@ class Mathcing extends Component {
 	}
 
 	changeMetric() {
+		let self = this;
         axios.post(this.state.url + '/changemetric/', {
             jobId: this.props.params.id,
             metric: document.getElementById("metrics").value
         }).then(function(response) {
+        	self.refreshEntities(self.state.matchingEntity.id);
+        	self.refreshTableEntities();
         });  
     }
 
