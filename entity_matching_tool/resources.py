@@ -156,7 +156,7 @@ class JobList(Resource):
                 job_dict = job.to_dict()
                 num_of_matched = len(MatchedEntities.query.filter(MatchedEntities.jobId == job.id).all())
                 num_of_entities = len(Entity.query.filter(Entity.jobId == job.id, Entity.isMatched == False).all())
-                job_dict['status'] = (num_of_matched / (num_of_entities + num_of_matched)) * 100 
+                job_dict['status'] = (num_of_matched / (num_of_entities + num_of_matched)) * 100
                 job_list.append(job_dict)
             return job_list
         except Exception as e:
@@ -256,7 +256,7 @@ class Entities(Resource):
             entity_from_first_source = Entity.query.filter(Entity.jobId == job.id,
                                                            Entity.isFirstSource,
                                                            Entity.isMatched == False,
-                                                           Entity.id > last_entity_id).first()
+                                                           Entity.id > last_entity_id).order_by(Entity.id).first()
             if entity_from_first_source is None:
                 return []
             entity_list = [entity_from_first_source.to_dict()]
