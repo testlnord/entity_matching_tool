@@ -57,6 +57,7 @@ class Mathcing extends Component {
 		let self = this;
 		axios.get(this.state.url + "/entities/?jobId=" + this.props.params.id + "&lastEntityId=" + id)
             .then(function(response){
+            	console.log(response);
             	if(response.data.length !== 0) {
             		self.setState({
 	                	matchingEntity: response.data[0],
@@ -120,7 +121,8 @@ class Mathcing extends Component {
 				entity1_id: this.state.matchingEntity.id,
 				entity2_id: document.getElementById('listEntities').value
 			}).then(function(response) {
-				self.refreshEntities(self.state.matchingEntity.id)
+				self.setState({currentEntityId: self.state.matchingEntity.id})
+				self.refreshEntities(self.state.currentEntityId)
 				self.refreshTableEntities();
 			})
 		} else {
@@ -136,7 +138,7 @@ class Mathcing extends Component {
             jobId: this.props.params.id,
             metric: document.getElementById("metrics").value
         }).then(function(response) {
-        	self.refreshEntities(self.state.matchingEntity.id);
+        	self.refreshEntities(self.state.currentEntityId);
         	self.refreshTableEntities();
         });  
     }
@@ -144,6 +146,7 @@ class Mathcing extends Component {
     toStart() {
     	this.refreshEntities();
     	this.refreshTableEntities();
+    	this.setState({currentEntityId: 0})
     }
 
     deleteMatchingPair(id) {
@@ -159,6 +162,13 @@ class Mathcing extends Component {
     	axios.get(this.state.url + '/saving/?jobId=' + this.props.params.id)
     		.then(function(response) {
     		})
+    }
+
+    refresh() {
+    	this.refreshEntities(this.state.matchingEntity.id)
+    	this.setState({
+    		currentEntityId: this.state.matchingEntity.id 
+    	});
     }
 
 
@@ -206,7 +216,7 @@ class Mathcing extends Component {
 
 	               	<ButtonToolbar>
 		                <Button bsStyle='success' onClick={() => this.match()}> Matching </Button>
-		                <Button onClick={() => this.refreshEntities(this.state.matchingEntity.id)}> Skip entity </Button>
+		                <Button onClick={() => this.refresh()}> Skip entity </Button>
 		                <Button onClick={() => this.toStart()}> Refresh all skiped entity </Button>
 		                <Button bsStyle='success' onClick={() => this.save()}> Save matching pair </Button>
 					</ButtonToolbar>
