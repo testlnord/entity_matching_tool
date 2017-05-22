@@ -6,6 +6,7 @@ import Button from 'react-bootstrap/lib/Button';
 import { browserHistory } from 'react-router';
 import ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar';
 import HelpBlock from 'react-bootstrap/lib/HelpBlock';
+import ProgressBar from 'react-bootstrap/lib/ProgressBar';
 import axios from 'axios';
     
     
@@ -23,9 +24,14 @@ class ListJobs extends Component {
     };
 
     componentWillMount() {
-        let self = this;
         if(localStorage.getItem('loginToken')){
-            axios.get(this.state.url + '/joblist/')
+            this.getListJob();
+        }
+    };
+
+    getListJob() {
+        let self = this;
+        axios.get(this.state.url + '/joblist/')
                 .then(function(response) {
                     self.setState({
                         listJobs: response.data != null ?
@@ -33,9 +39,8 @@ class ListJobs extends Component {
                                         .map((job) => 
                                             <Panel key={job.id} header={job.name} eventKey={job.id}>
                                                 {"Status"}
-                                                <Well bsSize='sm'>
-                                                    {}
-                                                </Well>
+                                                <ProgressBar now={job.status} label={`${job.status}%`} />
+
                                                 {"Source 1"}
                                                 <Well bsSize='sm'>
                                                     {job.source1}
@@ -67,13 +72,13 @@ class ListJobs extends Component {
                                     : null
                     });
                 });
-        }
-    };
+    }
 
     deleteJob(id) {
+        let self = this;
         axios.delete(this.state.url + '/jobs/?jobId=' + id)
             .then(function(response) {
-                console.log(response);
+                self.getListJob();
             })
     }
 
@@ -86,7 +91,7 @@ class ListJobs extends Component {
 
     render() {
         return (
-            <PanelGroup activeKey={this.state.activeKey} 
+            <PanelGroup id={this.props.callback} activeKey={this.state.activeKey} 
                 onSelect={this.handleSelect} accordion>
                 {this.state.listJobs}
             </PanelGroup>

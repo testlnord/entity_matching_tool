@@ -16,6 +16,7 @@ class App extends Component {
         this.state = {
             isLogin: localStorage.getItem('loginToken') ? true : false
         }
+        this.callbackLogin = this.callbackLogin.bind(this);
     };
 
     componentWillMount() {
@@ -39,7 +40,18 @@ class App extends Component {
         browserHistory.push('/signin');
     }
 
+    callbackLogin() {
+        this.setState({
+            isLogin: localStorage.getItem('loginToken') ? true : false
+        });
+    }
+
     render() {
+        const children = React.Children.map(this.props.children, (child) => 
+                                            React.cloneElement(child, {
+                                                callback: this.callbackLogin
+                                            })
+                                        );
         return (
             <div>
                 <Navbar>
@@ -58,7 +70,7 @@ class App extends Component {
                     </Navbar.Collapse>
                 </Navbar>
                 <Grid>
-                    {this.props.children}
+                    {children}
                 </Grid>
             </div>
         ); 

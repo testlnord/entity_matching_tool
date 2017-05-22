@@ -12,8 +12,8 @@ import { Link, browserHistory } from 'react-router';
 
 class Auth extends Component {
 
-	constructor() {
-		super();
+	constructor(props) {
+		super(props);
 		this.state = {
 			login: "",
 			password: "",
@@ -28,10 +28,11 @@ class Auth extends Component {
 		axios.get('http://' + this.state.login + ':' + this.state.password + '@localhost:5000/login/')
 			.then(function(response) {
 				localStorage.setItem('loginToken', response.data.token);
+				self.props.callback();
 				browserHistory.push('/');
-				
 			})
 			.catch(function(response) {
+				console.log(response);
 				self.setState({
 						password: "",
 						status: "error"

@@ -5,6 +5,7 @@ import FormGroup from 'react-bootstrap/lib/FormGroup';
 import ControlLabel from 'react-bootstrap/lib/ControlLabel';
 import FormControl from 'react-bootstrap/lib/FormControl';
 import HelpBlock from 'react-bootstrap/lib/HelpBlock';
+import { browserHistory } from 'react-router';
 import ListJobs from './ListJobs';
 import axios from 'axios';
 
@@ -80,15 +81,16 @@ class AddJob extends Component {
                 outputFileName: document.getElementById("outputFileName").value
             } 
         });
+        let self = this;
         let loadingTimer = setInterval(function() {
-            if(this.state.jobToServer) {
+            if(self.state.jobToServer) {
                 clearInterval(loadingTimer);
                 let allContain = true;
                 let status = {};
-                for(let key in this.state.jobToServer) {
-                    if(this.state.jobToServer.hasOwnProperty(key)) {
-                        let value = this.state.jobToServer[key];
-                        if(!value || value === "" || value === "...") {
+                for(let key in self.state.jobToServer) {
+                    if(self.state.jobToServer.hasOwnProperty(key)) {
+                        let value = self.state.jobToServer[key];
+                        if(!value || value === "") {
                             status[key] = "error";
                             allContain = false;
                         } else {
@@ -96,10 +98,9 @@ class AddJob extends Component {
                         }
                     }
                 }
-                this.setState({
+                self.setState({
                     status: status 
                 });
-                let self = this;
                 allContain ? axios.post('http://' + localStorage.getItem('loginToken') + ':' + '@localhost:5000/jobs/', this.state.jobToServer)
                                 .then(function(response) {
                                     document.getElementById("jobName").value = null;
@@ -110,9 +111,10 @@ class AddJob extends Component {
                                     document.getElementById("selectMetric").value = null;
                                     document.getElementById("outputFileName").value = null;
                                     self.setState({open: !self.state.open, 
-                                                isLoading: false})
+                                                isLoading: false});
+                                    self.props.callback();
                                 })
-                    : this.setState({ isLoading : false });
+                    : self.setState({ isLoading : false });
             }
         }.bind(this), 500);
     };
