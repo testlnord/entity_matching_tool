@@ -10,6 +10,7 @@ if __name__ == "__main__":
               source2='entity_matching_tool/csv_files/customers.csv',
               selected_fields={"source2": "company", "source1": "company_name"},
               output_file_name='job1_results',
+              metric='Simple',
               creator=1)
     job.save()
     e1 = Entity(job_id=1,
@@ -45,13 +46,13 @@ if __name__ == "__main__":
     e6.save()
     me1 = MatchedEntities(entity1_id=1,
                           entity2_id=5,
-                          user=1)
+                          job_id=1)
     me2 = MatchedEntities(entity1_id=2,
                           entity2_id=6,
-                          user=1)
+                          job_id=1)
     me3 = MatchedEntities(entity1_id=3,
                           entity2_id=4,
-                          user=1)
+                          job_id=1)
     me1.save()
     me2.save()
     me3.save()

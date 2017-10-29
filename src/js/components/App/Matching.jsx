@@ -28,7 +28,7 @@ class Mathcing extends Component {
 			},
 			secondInfoTable: null,
 			listMatchingEntity: null,
-			url: localStorage.getItem('loginToken') ? 'http://' + localStorage.getItem('loginToken') + ':@localhost:5000' : null
+			url: localStorage.getItem('loginToken') ? 'http://' + localStorage.getItem('loginToken') + ':@0.0.0.0:5000' : null
 		};
 		this.match = this.match.bind(this);
 		this.refreshEntities = this.refreshEntities.bind(this);

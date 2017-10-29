@@ -25,7 +25,7 @@ class Auth extends Component {
 
 	auth() {
 		let self = this;
-		axios.get('http://' + this.state.login + ':' + this.state.password + '@localhost:5000/login/')
+		axios.get('http://' + this.state.login + ':' + this.state.password + '@0.0.0.0:5000/login/')
 			.then(function(response) {
 				localStorage.setItem('loginToken', response.data.token);
 				self.props.callback();
