@@ -101,7 +101,7 @@ class AddJob extends Component {
                 self.setState({
                     status: status 
                 });
-                allContain ? axios.post('http://' + localStorage.getItem('loginToken') + ':' + '@localhost:5000/jobs/', this.state.jobToServer)
+                allContain ? axios.post('http://' + localStorage.getItem('loginToken') + ':' + '@0.0.0.0:5000/jobs/', this.state.jobToServer)
                                 .then(function(response) {
                                     document.getElementById("jobName").value = null;
                                     document.getElementById("firstSource").value = null;

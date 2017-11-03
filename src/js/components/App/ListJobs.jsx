@@ -17,7 +17,7 @@ class ListJobs extends Component {
         this.state = {
             activeKey: '1',
             listJobs: null,
-            url: localStorage.getItem('loginToken') ? 'http://' + localStorage.getItem('loginToken') + ':@localhost:5000' : null
+            url: localStorage.getItem('loginToken') ? 'http://' + localStorage.getItem('loginToken') + ':@0.0.0.0:5000' : null
         };
         this.handleSelect = this.handleSelect.bind(this);
         this.deleteJob = this.deleteJob.bind(this);
