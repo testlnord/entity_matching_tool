@@ -1,22 +1,17 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import App from './js/components/App/App';
-import Home from './js/components/App/Home';
-import Auth from './js/components/App/Auth';
-import Registr from './js/components/App/Registr';
-import Matching from './js/components/App/Matching';
-import { Router, Route, IndexRoute, browserHistory } from 'react-router';
+import React from 'react'
+import ReactDOM from 'react-dom'
+import { Router, browserHistory } from 'react-router'
+import { Provider } from 'react-redux'
+
+import configureStore from './store/configureStore'
+import routes from './routes'
 
 
+const store = configureStore();
 
 ReactDOM.render(
-	<Router history={browserHistory}>
-		<Route path='/' component={App}>
-			<IndexRoute component={Home} />
-			<Route path='signin' component={Auth} />
-			<Route path='registr' component={Registr} />
-			<Route path='options/:id' component={Matching} />
-		</Route>
-	</Router>,
+	<Provider store={store}>
+		<Router history={browserHistory} routes={routes} />
+	</Provider>,
 	document.getElementById('root')
 );

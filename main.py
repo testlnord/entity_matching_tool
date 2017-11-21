@@ -10,7 +10,7 @@ api.add_resource(FieldNames, '/fieldnames/')
 api.add_resource(Entities, '/entities/')
 api.add_resource(Matching, '/matching/')
 api.add_resource(MetricNames, '/metrics/')
-api.add_resource(Users, '/regist/')
+api.add_resource(Users, '/signup/')
 api.add_resource(Token, '/login/')
 api.add_resource(SavingResults, '/saving/')
 api.add_resource(ChangingMetric, '/changemetric/')
@@ -18,7 +18,7 @@ api.add_resource(ChangingMetric, '/changemetric/')
 
 @app.route('/')
 @app.route('/signin/')
-@app.route('/registr/')
+@app.route('/signup/')
 @app.route('/joblist/')
 @app.route('/jobs/')
 @app.route('/csvfiles/')
@@ -28,4 +28,4 @@ def index():
     return render_template('index.html')
 
 
-app.run(host='0.0.0.0')
+app.run(host='0.0.0.0', threaded=True)
