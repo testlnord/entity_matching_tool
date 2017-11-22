@@ -9,12 +9,17 @@ services:
       interval: 3s
       timeout: 3s
       retries: 5
+  mongodb:
+    image: mongo:3.5
+    ports:
+      - "27017:27017"
   web:
     depends_on:
       db:
         condition: service_healthy
     links:
       - db
+      - mongodb
     build: .
     command: bash -c "./start.sh"
     volumes:
