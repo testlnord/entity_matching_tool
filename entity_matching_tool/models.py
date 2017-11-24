@@ -6,6 +6,9 @@ from sqlalchemy import UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSON
 from passlib.apps import custom_app_context as pwd_context
 
+from mongoengine import *
+
+
 from entity_matching_tool import db, app
 
 
@@ -17,7 +20,7 @@ class Job(db.Model):
     source2 = db.Column(db.String())
     selectedFields = db.Column(JSON)
     outputFileName = db.Column(db.String(), unique=True)
-    creator = db.Column(db.Integer, db.ForeignKey('users.id'))
+    creator = db.Column(db.Integer, db.ForeignKey('users.id')) # ForeignKey - сязывает Job и User
     creationDate = db.Column(db.DateTime)
     metric = db.Column(db.String())
     __table_args__ = (UniqueConstraint('creator', 'source1', 'source2', name='unique_creator_with_sources'),)
@@ -52,6 +55,27 @@ class Job(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+
+
+class MongoEntity(Document):
+    Id = IntField()
+    jobId = IntField()
+    isFirstSource = BooleanField()
+    name = StringField()
+    otherFields = DictField()
+    isMatched = BooleanField(default=False)
+
+    def to_dict(self):
+        entity_dict = dict(Id=self.Id, jobId=self.jobId, isFirstSource=self.isFirstSource, name=self.name,
+                           otherFields=self.otherFields, isMatched=self.isMatched)
+        return entity_dict
+
+    def set_as_matched(self):
+        self.isMatched = True
+        self.save()
+
+    def __repr__(self):
+        return '<Entity: "{}">'.format(self.name)
 
 
 class Entity(db.Model):
@@ -89,6 +113,20 @@ class Entity(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+
+
+class MongoMatchedEntities(Document):
+    Id = IntField()
+    entity1_id = IntField()
+    entity2_id = IntField()
+    jobId = IntField()
+
+    def to_dict(self):
+        entity_dict = dict(Id=self.Id, jobId=self.jobId, entity1_id=self.entity1_id, entity2_id=self.entity2_id)
+        return entity_dict
+
+    def __repr__(self):
+        return '<Matched Entities: {}, {}>'.format(self.entity1_id, self.entity2_id)
 
 
 class MatchedEntities(db.Model):
