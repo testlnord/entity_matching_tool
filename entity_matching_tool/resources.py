@@ -132,7 +132,7 @@ class Jobs(Resource):
             job = Job(name, source1, source2, selected_fields, output_file_name, metric, user)
             job.save()
 
-            with open(job.source1) as csv_file:
+            with open(job.source1, encoding='UTF-8') as csv_file:
                 reader = csv.DictReader(csv_file)
                 for row in reader:
                     name = row.pop(job.selectedFields['source1'])
@@ -141,7 +141,7 @@ class Jobs(Resource):
                     entity_id = MongoEntity.objects(jobId=job.id).count() + 1
                     mongo_entity = MongoEntity(entity_id, job.id, True, name, row)
                     mongo_entity.save()
-            with open(job.source2) as csv_file:
+            with open(job.source2, encoding='UTF-8') as csv_file:
                 reader = csv.DictReader(csv_file)
                 for row in reader:
                     name = row.pop(job.selectedFields['source2'])
@@ -213,7 +213,7 @@ class FieldNames(Resource):
         """
         try:
             file_path = parser.parse_args()['filePath']
-            with open(file_path, 'r') as csv_file:
+            with open(file_path, 'r', encoding='UTF-8') as csv_file:
                 reader = csv.reader(csv_file)
                 for row in reader:
                     return row
@@ -407,7 +407,7 @@ class SavingResults(Resource):
                 os.makedirs(self.directory_path)
             # matched_entities = MatchedEntities.query.filter(MatchedEntities.jobId == job.id).all()
             matched_entities = MongoMatchedEntities.objects(jobId=job.id)
-            with open(self.directory_path + job.outputFileName + '.csv', 'w') as csvfile:
+            with open(self.directory_path + job.outputFileName + '.csv', 'w', encoding='UTF-8') as csvfile:
                 fieldnames = ['entity1', 'entity2']
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                 writer.writeheader()
