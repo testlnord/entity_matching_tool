@@ -1,14 +1,12 @@
-import React, { Component } from 'react';
-import Button from 'react-bootstrap/lib/Button';
-import Panel from 'react-bootstrap/lib/Panel';
-import FormGroup from 'react-bootstrap/lib/FormGroup';
-import ControlLabel from 'react-bootstrap/lib/ControlLabel';
-import FormControl from 'react-bootstrap/lib/FormControl';
-import HelpBlock from 'react-bootstrap/lib/HelpBlock';
-import { browserHistory } from 'react-router';
-import ListJobs from './ListJobs';
-import axios from 'axios';
+import React, { Component } from 'react'
+import axios from 'axios'
 
+import Button from 'react-bootstrap/lib/Button'
+import Panel from 'react-bootstrap/lib/Panel'
+import FormGroup from 'react-bootstrap/lib/FormGroup'
+import ControlLabel from 'react-bootstrap/lib/ControlLabel'
+import FormControl from 'react-bootstrap/lib/FormControl'
+import HelpBlock from 'react-bootstrap/lib/HelpBlock'
 
 function FieldGroup({ id,status,label,help, ...props }) {
     return (
@@ -18,9 +16,10 @@ function FieldGroup({ id,status,label,help, ...props }) {
             {help && <HelpBlock>{help}</HelpBlock>}
         </FormGroup>
     );
-};
+}
 
 class AddJob extends Component {
+
     constructor() {
         super();
         this.state = {
@@ -44,7 +43,7 @@ class AddJob extends Component {
         this.componentWillMount = this.componentWillMount.bind(this);
         this.refreshFirstFields = this.refreshFirstFields.bind(this);
         this.refreshSecondFields = this.refreshSecondFields.bind(this);
-    };
+    }
 
     componentWillMount() {
         let self = this;
@@ -62,9 +61,7 @@ class AddJob extends Component {
                                 .map((path) => <option key={path} value={path}>{path}</option>)
                 });
             });
-    };
-
-   
+    }
 
     handleClick() {
         this.setState({
@@ -75,11 +72,13 @@ class AddJob extends Component {
                 name: document.getElementById("jobName").value,
                 source1: document.getElementById("firstSource").value,
                 source2: document.getElementById("secondSource").value,
-                selectedFields: {source1: document.getElementById("firstSelectedFields").value, 
-                                    source2: document.getElementById("secondSelectedFields").value},
+                selectedFields: {
+                    source1: document.getElementById("firstSelectedFields").value,
+                    source2: document.getElementById("secondSelectedFields").value
+                },
                 metric: document.getElementById("selectMetric").value,
                 outputFileName: document.getElementById("outputFileName").value
-            } 
+            }
         });
         let self = this;
         let loadingTimer = setInterval(function() {
@@ -99,25 +98,29 @@ class AddJob extends Component {
                     }
                 }
                 self.setState({
-                    status: status 
+                    status: status
                 });
-                allContain ? axios.post('http://' + localStorage.getItem('loginToken') + ':' + '@0.0.0.0:5000/jobs/', this.state.jobToServer)
-                                .then(function(response) {
-                                    document.getElementById("jobName").value = null;
-                                    document.getElementById("firstSource").value = null;
-                                    document.getElementById("secondSource").value = null;
-                                    document.getElementById("firstSelectedFields").value = null;
-                                    document.getElementById("secondSelectedFields").value = null;
-                                    document.getElementById("selectMetric").value = null;
-                                    document.getElementById("outputFileName").value = null;
-                                    self.setState({open: !self.state.open, 
-                                                isLoading: false});
-                                    self.props.callback();
-                                })
+                allContain ? axios.post('http://' + sessionStorage.getItem('loginToken') + ':' + '@0.0.0.0:5000/jobs/', this.state.jobToServer)
+                        .then(function(response) {
+                            document.getElementById("jobName").value = null;
+                            document.getElementById("firstSource").value = null;
+                            document.getElementById("secondSource").value = null;
+                            document.getElementById("firstSelectedFields").value = null;
+                            document.getElementById("secondSelectedFields").value = null;
+                            document.getElementById("selectMetric").value = null;
+                            document.getElementById("outputFileName").value = null;
+                            self.setState({
+                                open: !self.state.open,
+                                isLoading: false
+                            });
+                            self.props.callback();
+                        }).catch(function(response) {
+                            console.log(response);
+                        })
                     : self.setState({ isLoading : false });
             }
         }.bind(this), 500);
-    };
+    }
 
     refreshFirstFields() {
         let self = this;
@@ -129,7 +132,7 @@ class AddJob extends Component {
                                     .map((name) => <option key={name} value={name}>{name}</option>)
                 })
             });
-    };
+    }
 
     refreshSecondFields() {
         let self = this;
@@ -141,7 +144,7 @@ class AddJob extends Component {
                                     .map((name) => <option key={name} value={name}>{name}</option>)
                 })
             });
-    };
+    }
 
     render() {
         return (
@@ -160,8 +163,7 @@ class AddJob extends Component {
                         />
                         <FormGroup controlId="firstSource" validationState={this.state.status.source1}>
                             <ControlLabel>Choose first path to csv file</ControlLabel>
-                            <FormControl  componentClass="select" onChange={this.refreshFirstFields} 
-                                    >
+                            <FormControl  componentClass="select" onChange={this.refreshFirstFields}>
                                 {this.state.listPaths}
                             </FormControl>
                         </FormGroup>
@@ -210,4 +212,4 @@ class AddJob extends Component {
     }
 }
 
-export default AddJob;
+export default AddJob
