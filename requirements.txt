@@ -9,6 +9,8 @@ Flask-HTTPAuth==3.2.2
 Flask-RESTful==0.3.5
 Flask-Restless==0.17.0
 Flask-SQLAlchemy==2.2
+Flask-MongoEngine==0.9.3
+mongoengine==0.15.0
 fuzzywuzzy==0.15.0
 itsdangerous==0.24
 Jinja2==2.9.5
