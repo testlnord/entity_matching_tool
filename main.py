@@ -1,6 +1,6 @@
 from entity_matching_tool import app, api, models
 from entity_matching_tool.resources import JobList, Jobs, CsvFiles, FieldNames, Entities, Matching, MetricNames, Users, \
-    Token, SavingResults, ChangingMetric
+    Token, SavingResults, ChangingMetric, AddSource
 from flask import render_template
 
 api.add_resource(JobList, '/joblist/')
@@ -14,6 +14,7 @@ api.add_resource(Users, '/signup/')
 api.add_resource(Token, '/login/')
 api.add_resource(SavingResults, '/saving/')
 api.add_resource(ChangingMetric, '/changemetric/')
+api.add_resource(AddSource, '/files/')
 
 
 @app.route('/')
@@ -24,6 +25,7 @@ api.add_resource(ChangingMetric, '/changemetric/')
 @app.route('/csvfiles/')
 @app.route('/fieldnames/')
 @app.route('/metrics/')
+@app.route('/files/')
 def index():
     return render_template('index.html')
 
