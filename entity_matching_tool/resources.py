@@ -7,10 +7,10 @@ from flask import request, g
 from flask_restful import Resource, reqparse, abort
 from flask_httpauth import HTTPBasicAuth
 
-from .models import User, Job, Entity, MatchedEntities, MongoEntity, MongoMatchedEntities
+from .models import User, Job, MongoEntity, MongoMatchedEntities
 from entity_matching_tool import app
 from mongoengine import *
-from bson import ObjectId
+from werkzeug.utils import secure_filename
 
 JOB_ID = 'jobId'
 FILE_PATH = 'filePath'
@@ -136,8 +136,6 @@ class Jobs(Resource):
                 reader = csv.DictReader(csv_file)
                 for row in reader:
                     name = row.pop(job.selectedFields['source1'])
-                    # entity = Entity(job.id, True, name, row)
-                    # entity.save()
                     entity_id = MongoEntity.objects(jobId=job.id).count() + 1
                     mongo_entity = MongoEntity(entity_id, job.id, True, name, row)
                     mongo_entity.save()
@@ -145,8 +143,6 @@ class Jobs(Resource):
                 reader = csv.DictReader(csv_file)
                 for row in reader:
                     name = row.pop(job.selectedFields['source2'])
-                    # entity = Entity(job.id, False, name, row)
-                    # entity.save()
                     entity_id = MongoEntity.objects(jobId=job.id).count() + 1
                     mongo_entity = MongoEntity(entity_id, job.id, False, name, row)
                     mongo_entity.save()
@@ -167,9 +163,6 @@ class JobList(Resource):
             job_list = []
             for job in jobs:
                 job_dict = job.to_dict()
-
-                # num_of_matched = len(MatchedEntities.query.filter(MatchedEntities.jobId == job.id).all())
-                # num_of_entities = len(Entity.query.filter(Entity.jobId == job.id, Entity.isMatched == False).all())
 
                 num_of_matched = 0
                 num_of_entities = 0
@@ -278,14 +271,6 @@ class Entities(Resource):
             job = get_job_or_abort()
             last_entity_id = parser.parse_args()['lastEntityId']
 
-            # entity_from_first_source = Entity.query.filter(Entity.jobId == job.id,
-            #                                                Entity.isFirstSource,
-            #                                                Entity.isMatched == False,
-            #                                                Entity.id > last_entity_id).order_by(Entity.id).first()
-
-            # for entity in MongoEntity.objects:
-            #     print(str(entity.id), ' ', last_entity_id, ' ')
-
             entity_from_first_source = MongoEntity.objects(Q(jobId=job.id) &
                                                            Q(isFirstSource=True) &
                                                            Q(isMatched=False) &
@@ -294,10 +279,6 @@ class Entities(Resource):
             if entity_from_first_source is None:
                 return []
             entity_list = [entity_from_first_source.to_dict()]
-
-            # entities_from_second_source = Entity.query.filter(Entity.jobId == job.id,
-            #                                                   Entity.isFirstSource == False,
-            #                                                   Entity.isMatched == False).all()
 
             entities_from_second_source = MongoEntity.objects(Q(jobId=job.id) &
                                                            Q(isFirstSource=False) &
@@ -315,8 +296,6 @@ class Entities(Resource):
     def delete(self):
         try:
             entity_id = parser.parse_args()[ENTITY_ID]
-            # entity = Entity.query.filter(Entity.id == entity_id).first()
-            # entity.delete()
             entity = MongoEntity.objects(MongoEntity.Id == entity_id).first()
             entity.delete()
             return {'status': 'Deleted'}
@@ -328,33 +307,25 @@ class Matching(Resource):
     def post(self):
         """
         Add matched pair to database
-        :arg: JSON with keys: entity1_id, entity2_id
+        :arg: JSON with keys: entity1_id, entity2_id, job_id
         :return: status
         """
         try:
             entity1_id = request.json.get('entity1_id')
             entity2_id = request.json.get('entity2_id')
-            # entity1 = Entity.query.filter(Entity.id == entity1_id).first()
-            # entity1.set_as_matched()
-            # entity2 = Entity.query.filter(Entity.id == entity2_id).first()
-            # entity2.set_as_matched()
+            job_id = request.json.get('job_id')
 
-            entity1 = MongoEntity.objects(Id=entity1_id).first()
-            entity1.set_as_matched()
-            entity2 = MongoEntity.objects(Id=entity2_id).first()
-            entity2.set_as_matched()
+            entity1 = MongoEntity.objects(Q(Id=entity1_id) &
+                                          Q(jobId=job_id)).first()
+            entity2 = MongoEntity.objects(Q(Id=entity2_id) &
+                                          Q(jobId=job_id)).first()
 
             if not entity1 or not entity2:
                 app.logger.error("Entity {} or {} doesn't exist".format(entity1_id, entity2_id))
-            job_id = entity1.jobId
-            # match = MatchedEntities(entity1_id, entity2_id, job_id)
-            # match.save()
+            entity1.set_as_matched()
+            entity2.set_as_matched()
 
-            mongo_matched_entities = MongoMatchedEntities.objects.order_by('-id').first()
-            if mongo_matched_entities == None:
-                matched_entity_id = 1
-            else:
-                matched_entity_id = mongo_matched_entities.Id + 1
+            matched_entity_id = MongoMatchedEntities.objects(jobId = job_id).count() + 1
             match = MongoMatchedEntities(matched_entity_id, entity1_id, entity2_id, job_id)
             match.save()
 
@@ -365,13 +336,12 @@ class Matching(Resource):
     def get(self):
         try:
             job_id = parser.parse_args()[JOB_ID]
-            #matched_entities = MatchedEntities.query.filter(MatchedEntities.jobId == job_id).all()
             res = []
             for match in MongoMatchedEntities.objects(jobId=job_id):
-                # entity1 = Entity.query.filter(Entity.id == match.entity1_id).first().name
-                # entity2 = Entity.query.filter(Entity.id == match.entity2_id).first().name
-                entity1 = MongoEntity.objects(Id=match.entity1_id).first()
-                entity2 = MongoEntity.objects(Id=match.entity2_id).first()
+                entity1 = MongoEntity.objects(Q(Id=match.entity1_id) &
+                                              Q(jobId=job_id)).first()
+                entity2 = MongoEntity.objects(Q(Id=match.entity2_id) &
+                                              Q(jobId=job_id)).first()
                 res.append({MATCH_ID: match.Id, 'entity1': entity1.name, 'entity2': entity2.name})
             return res
         except Exception as e:
@@ -379,15 +349,16 @@ class Matching(Resource):
 
     def delete(self):
         try:
+            job_id = parser.parse_args()[JOB_ID]
             match_id = parser.parse_args()[MATCH_ID]
-            #match = MatchedEntities.query.filter(MatchedEntities.id == match_id).first()
-            match = MongoMatchedEntities.objects(Id=match_id).first()
-            # entity1 = Entity.query.filter(Entity.id == match.entity1_id).first()
-            entity1 = MongoEntity.objects(Id=match.entity1_id).first()
+            match = MongoMatchedEntities.objects(Q(Id=match_id) &
+                                                 Q(jobId=job_id)).first()
+            entity1 = MongoEntity.objects(Q(Id=match.entity1_id) &
+                                          Q(jobId=job_id)).first()
             entity1.isMatched = False
             entity1.save()
-            # entity2 = Entity.query.filter(Entity.id == match.entity2_id).first()
-            entity2 = MongoEntity.objects(Id=match.entity2_id).first()
+            entity2 = MongoEntity.objects(Q(Id=match.entity2_id) &
+                                          Q(jobId=job_id)).first()
             entity2.isMatched = False
             entity2.save()
             match.delete()
@@ -405,17 +376,16 @@ class SavingResults(Resource):
             job = get_job_or_abort()
             if not os.path.exists(self.directory_path):
                 os.makedirs(self.directory_path)
-            # matched_entities = MatchedEntities.query.filter(MatchedEntities.jobId == job.id).all()
             matched_entities = MongoMatchedEntities.objects(jobId=job.id)
             with open(self.directory_path + job.outputFileName + '.csv', 'w', encoding='UTF-8') as csvfile:
                 fieldnames = ['entity1', 'entity2']
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                 writer.writeheader()
                 for match in matched_entities:
-                    # entity1 = Entity.query.filter(Entity.id == match.entity1_id).first().name
-                    # entity2 = Entity.query.filter(Entity.id == match.entity2_id).first().name
-                    entity1 = MongoEntity.objects(Id=match.entity1_id).first()
-                    entity2 = MongoEntity.objects(Id=match.entity2_id).first()
+                    entity1 = MongoEntity.objects(Q(Id=match.entity1_id) &
+                                                  Q(jobId=job.id)).first()
+                    entity2 = MongoEntity.objects(Q(Id=match.entity2_id) &
+                                                  Q(jobId=job.id)).first()
                     writer.writerow({'entity1': entity1.name, 'entity2': entity2.name})
         except Exception as e:
             app.logger.exception(e)
@@ -432,3 +402,19 @@ class ChangingMetric(Resource):
         except Exception as e:
             app.logger.exception(e)
 
+
+class AddSource(Resource):
+    # def __init__(self):
+    #     self.upload_folder = 'entity_matching_tool/csv_files/'
+    #     self.allowed_extensions = ['csv']
+
+    def post(self):
+        try:
+            file = request.files['file']
+            if file and '.' in file.filename and file.filename.rsplit('.', 1)[1] in app.config['ALLOWED_EXTENSIONS']:
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            else:
+                return {'status': 'No files'}
+        except Exception as e:
+            app.logger.exception(e)

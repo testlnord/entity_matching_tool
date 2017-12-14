@@ -24,6 +24,9 @@ class BaseConfig(object):
                 'port': '27017',
             }
     MONGO_URI = os.environ.get('MONGO_URI', 'mongodb://%(host)s:%(port)s/%(db)s' % MONGO)
+    # Source files config
+    UPLOAD_FOLDER = 'entity_matching_tool/csv_files/'
+    ALLOWED_EXTENSIONS = ['csv']
 
 class TestConfig(object):
     DEBUG = os.environ.get('DEBUG', True)
@@ -43,11 +46,14 @@ class TestConfig(object):
     # Mongodb config
     MONGO_DBNAME = 'mongo'
     MONGO = {
-        'db': 'mongo',
+        'db': 'entity_matching_tool',
         'host': 'localhost',
         'port': '27017',
     }
     MONGO_URI = os.environ.get('MONGO_URI', 'mongodb://%(host)s:%(port)s/%(db)s' % MONGO)
+    # Source files config
+    UPLOAD_FOLDER = 'entity_matching_tool/csv_files/'
+    ALLOWED_EXTENSIONS = ['csv']
 
 
 

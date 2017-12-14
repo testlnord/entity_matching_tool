@@ -1,4 +1,5 @@
 import React, { Component, PropTypes } from 'react'
+import { browserHistory } from 'react-router'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
 import * as authActions from '../actions/authActions'
@@ -46,7 +47,7 @@ class App extends Component {
                     {this.props.children}
                 </Grid>
             </div>
-        ); 
+        );
     }
 }
 

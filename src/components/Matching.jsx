@@ -10,6 +10,7 @@ import Button from 'react-bootstrap/lib/Button'
 import ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar'
 import HelpBlock from 'react-bootstrap/lib/HelpBlock'
 import Table from 'react-bootstrap/lib/Table'
+import { AlertList } from "react-bs-notifier"
 
 
 class Matching extends Component {
@@ -17,9 +18,10 @@ class Matching extends Component {
     constructor() {
         super();
         this.state = {
+            alerts: [],
             matchingEntity: {
                 name: null,
-                id: null
+                Id: null
             },
             currentEntityId: 0,
             metrics: null,
@@ -29,6 +31,7 @@ class Matching extends Component {
                 values: null
             },
             secondInfoTable: null,
+            listEntities: null,
             listMatchingEntity: null,
             url: sessionStorage.getItem('loginToken')
                 ? 'http://' + sessionStorage.getItem('loginToken') + ':@0.0.0.0:5000'
@@ -37,7 +40,33 @@ class Matching extends Component {
         this.match = this.match.bind(this);
         this.refreshEntities = this.refreshEntities.bind(this);
         this.changeMetric = this.changeMetric.bind(this);
+        this.generateAlert = this.generateAlert.bind(this);
 
+    }
+
+    generateAlert() {
+        const newAlert = {
+            id: (new Date()).getTime(),
+            headline: "Matched!",
+            type: "success",
+            message: "All entities are matched. Return to the home page."
+        };
+
+        this.setState({
+            alerts: [...this.state.alerts, newAlert]
+        });
+    }
+
+    onAlertDismissed(alert) {
+        const alerts = this.state.alerts;
+        // find the index of the alert that was dismissed
+        const idx = alerts.indexOf(alert);
+        if (idx >= 0) {
+            this.setState({
+                // remove the alert from the array
+                alerts: [...alerts.slice(0, idx), ...alerts.slice(idx + 1)]
+            });
+        }
     }
 
     componentWillMount() {
@@ -46,7 +75,7 @@ class Matching extends Component {
             .then(function(response) {
                 self.setState({
                     metrics: response.data
-                                .map((metric) => <option key={metric} value={metric}>{metric}</option>)
+                        .map((metric) => <option key={metric} value={metric}>{metric}</option>)
                 });
             });
 
@@ -64,36 +93,38 @@ class Matching extends Component {
                     self.setState({
                         matchingEntity: response.data[0],
                         listEntities: response.data.length !== 1 ?
-                                        response.data.slice(1, response.data.length)
-                                            .map((entity) => <option key={entity.id} value={entity.id}>{entity.name}</option>)
-                                        : null,
+                            response.data.slice(1, response.data.length)
+                                .map((entity) => <option key={entity.Id} value={entity.Id}>{entity.name}</option>)
+                            : null,
                         firstInfoTable: {
-                                    names: response.data[0] ?
-                                            Object.keys(response.data[0].otherFields)
-                                                    .map((name) =>
-                                                            <th> {name} </th>
-                                                        )
-                                            : null,
-                                    values: response.data[0] ?
-                                            Object.keys(response.data[0].otherFields).map((key) => response.data[0].otherFields[key])
-                                                    .map((value) =>
-                                                            <td> {value} </td>
-                                                        )
-                                            : null
-                                        },
+                            names: response.data[0] ?
+                                Object.keys(response.data[0].otherFields)
+                                    .map((name) =>
+                                        <th> {name} </th>
+                                    )
+                                : null,
+                            values: response.data[0] ?
+                                Object.keys(response.data[0].otherFields).map((key) => response.data[0].otherFields[key])
+                                    .map((value) =>
+                                        <td> {value} </td>
+                                    )
+                                : null
+                        },
                         help: response.data.length === 1
                     });
                 } else {
                     self.setState({
                         matchingEntity: {
                             name: "All entities are matched",
-                            id: self.state.matchingEntity.id
+                            id: self.state.matchingEntity.Id
                         },
                         firstInfoTable: {
-                                    names: null,
-                                    values: null
-                        }
+                            names: null,
+                            values: null
+                        },
+                        listEntities: null
                     });
+                    self.generateAlert();
                 }
             });
     }
@@ -104,18 +135,19 @@ class Matching extends Component {
             .then(function(response) {
                 self.setState({
                     listMatchingEntity: response.data
-                                            .map((entity) =>
-                                                <tr>
-                                                    <td> {entity.entity1} </td>
-                                                    <td> {entity.entity2} </td>
-                                                    <td>
-                                                        <Button bsSize='xsmall' bsStyle='danger'
-                                                            onClick={() => self.deleteMatchingPair(entity.matchId)}>
-                                                            {"Delete"}
-                                                        </Button>
-                                                    </td>
-                                                </tr>
-                                            )
+                        .map((entity) =>
+                            <tr>
+                                <td> {entity.entity1} </td>
+                                <td> {entity.entity2} </td>
+                                <td>
+                                    <Button bsSize='xsmall'
+                                            bsStyle='danger'
+                                            onClick={() => self.deleteMatchingPair(entity.matchId)}>
+                                        {"Delete"}
+                                    </Button>
+                                </td>
+                            </tr>
+                        )
                 });
             });
     }
@@ -128,10 +160,11 @@ class Matching extends Component {
                 help: false
             });
             axios.post(this.state.url + /matching/, {
-                entity1_id: this.state.matchingEntity.id,
-                entity2_id: document.getElementById('listEntities').value
+                entity1_id: this.state.matchingEntity.Id,
+                entity2_id: document.getElementById('listEntities').value,
+                job_id: this.props.params.id
             }).then(function(response) {
-                self.setState({currentEntityId: self.state.matchingEntity.id});
+                self.setState({currentEntityId: self.state.matchingEntity.Id});
                 self.refreshEntities(self.state.currentEntityId);
                 self.refreshTableEntities();
             })
@@ -150,7 +183,7 @@ class Matching extends Component {
         }).then(function(response) {
             self.refreshEntities(self.state.currentEntityId);
             self.refreshTableEntities();
-        });  
+        });
     }
 
     toStart() {
@@ -161,7 +194,7 @@ class Matching extends Component {
 
     deleteMatchingPair(id) {
         let self = this;
-        axios.delete(this.state.url + '/matching/?matchId=' + id)
+        axios.delete(this.state.url + "/matching/?matchId=" + id + "&jobId=" + this.props.params.id)
             .then(function(response) {
                 self.refreshEntities(self.state.currentEntityId);
                 self.refreshTableEntities();
@@ -175,15 +208,23 @@ class Matching extends Component {
     }
 
     refresh() {
-        this.refreshEntities(this.state.matchingEntity.id);
+        this.refreshEntities(this.state.matchingEntity.Id);
         this.setState({
-            currentEntityId: this.state.matchingEntity.id
+            currentEntityId: this.state.matchingEntity.Id
         });
     }
 
     render() {
         return (
             <div>
+
+                <AlertList
+                    position="bottom-right"
+                    alerts={this.state.alerts}
+                    timeout={3000}
+                    onDismiss={this.onAlertDismissed.bind(this)}
+                />
+
                 <Well>
                     <FormGroup>
                         <ControlLabel>Entity from first file</ControlLabel>
@@ -228,26 +269,28 @@ class Matching extends Component {
                     <ButtonToolbar>
                         <Button bsStyle='success' onClick={() => this.match()}> Matching </Button>
                         <Button onClick={() => this.refresh()}> Skip entity </Button>
-                        <Button onClick={() => this.toStart()}> Refresh all skipped entity </Button>
-                        <Button bsStyle='success' onClick={() => this.save()}> Save matching pair </Button>
+                        <Button onClick={() => this.toStart()}> Refresh all skipped entities </Button>
+                        <Button bsStyle='success' onClick={() => this.save()}> Save matched pair </Button>
                     </ButtonToolbar>
                 </Well>
+
                 <Well>
                     <Table striped bordered condensed hover>
-                    <thead>
-                        <tr>
-                            <th> {"Name of first entity"} </th>
-                            <th> {"Name of second entity"} </th>
-                            <th> {"Delete matching pair"} </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {this.state.listMatchingEntity}
-                    </tbody>
+                        <thead>
+                            <tr>
+                                <th> {"Name of first entity"} </th>
+                                <th> {"Name of second entity"} </th>
+                                <th> {"Delete matching pair"} </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {this.state.listMatchingEntity}
+                        </tbody>
                     </Table>
                 </Well>
+
             </div>
-            )
+        )
     }
 }
 

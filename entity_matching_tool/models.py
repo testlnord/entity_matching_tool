@@ -78,43 +78,6 @@ class MongoEntity(Document):
         return '<Entity: "{}">'.format(self.name)
 
 
-class Entity(db.Model):
-    __tablename__ = 'entities'
-    id = db.Column(db.Integer, primary_key=True)
-    jobId = db.Column(db.Integer, db.ForeignKey('jobs.id', ondelete='CASCADE'))
-    isFirstSource = db.Column(db.Boolean)
-    name = db.Column(db.String())
-    otherFields = db.Column(JSON)
-    isMatched = db.Column(db.Boolean, default=False)
-    __table_args__ = (UniqueConstraint('jobId', 'isFirstSource', 'name', name='unique_entity_in_job'),)
-
-    def __init__(self, job_id, is_first_source, name, other_fields):
-        self.jobId = job_id
-        self.isFirstSource = is_first_source
-        self.name = name
-        self.otherFields = other_fields
-
-    def __repr__(self):
-        return '<Entity: "{}">'.format(self.name)
-
-    def to_dict(self):
-        entity_dict = dict(self.__dict__)
-        entity_dict.pop('_sa_instance_state', None)
-        return entity_dict
-
-    def set_as_matched(self):
-        self.isMatched = True
-        db.session.commit()
-
-    def save(self):
-        db.session.add(self)
-        db.session.commit()
-
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
-
-
 class MongoMatchedEntities(Document):
     Id = IntField()
     entity1_id = IntField()
@@ -127,36 +90,6 @@ class MongoMatchedEntities(Document):
 
     def __repr__(self):
         return '<Matched Entities: {}, {}>'.format(self.entity1_id, self.entity2_id)
-
-
-class MatchedEntities(db.Model):
-    __tablename__ = 'matched_entities'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    entity1_id = db.Column(db.Integer, db.ForeignKey('entities.id', ondelete='CASCADE'), primary_key=True)
-    entity2_id = db.Column(db.Integer, db.ForeignKey('entities.id', ondelete='CASCADE'), primary_key=True)
-    jobId = db.Column(db.Integer, db.ForeignKey('jobs.id', ondelete='CASCADE'))
-    __table_args__ = (UniqueConstraint('entity1_id', 'entity2_id', 'jobId', name='unique_matched_entities'),)
-
-    def __init__(self, entity1_id, entity2_id, job_id):
-        self.entity1_id = entity1_id
-        self.entity2_id = entity2_id
-        self.jobId = job_id
-
-    def __repr__(self):
-        return '<Matched Entities: {}, {}>'.format(self.entity1_id, self.entity2_id)
-
-    def to_dict(self):
-        entity_dict = dict(self.__dict__)
-        entity_dict.pop('_sa_instance_state', None)
-        return entity_dict
-
-    def save(self):
-        db.session.add(self)
-        db.session.commit()
-
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
 
 
 class User(db.Model):

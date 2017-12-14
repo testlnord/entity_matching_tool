@@ -13,7 +13,7 @@ import AddJob from './AddJob'
 
 class Home extends Component {
 
-    constructor(props) {
+    constructor() {
         super();
         this.state = {
             activeKey: '1',
@@ -35,8 +35,7 @@ class Home extends Component {
                 self.setState({
                     jobList: response.data !== null ?
                         response.data
-                            .map((job) =>
-                                <Panel key={job.id} header={job.name} eventKey={job.id}>
+                            .map((job) => <Panel key={job.id} header={job.name} eventKey={job.id}>
 
                                     {"Status"}
                                     <ProgressBar now={job.status} label={`${job.status}%`} />
@@ -78,8 +77,11 @@ class Home extends Component {
                                 </Panel>
                             )
                         : null
-                });
-            });
+                })
+            })
+            .catch(function (error) {
+                console.log(error);
+            })
     }
 
     deleteJob(id) {
@@ -101,7 +103,7 @@ class Home extends Component {
         return (
             <div className="view-jobs">
                 <div className="add-job">
-                    <h1>Jobs list</h1>
+                    <h1>List of Jobs</h1>
                     <AddJob callback={this.getJobList}/>
                 </div>
                 <div className="list-jobs">
